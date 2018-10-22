@@ -1,0 +1,104 @@
+- name: create working directory
+  file:
+    path: "{{ GRAFANA_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ GRAFANA_DIRECTORY }}/docker-compose.yml"
+
+- name: execute docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose up -d"
+  args:
+    chdir: "{{ GRAFANA_DIRECTORY }}"
+
+- name: restart docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose restart"
+  args:
+    chdir: "{{ GRAFANA_DIRECTORY }}"
+
+
+- name: wait for grafana port
+  wait_for:
+    port: "3000"
+
+
+- name: get datasources
+  uri:
+    HEADER_Content-Type: application/json
+    url: http://localhost:3000/api/datasources
+    method: GET
+    user: admin
+    password: password
+    force_basic_auth: yes
+  tags: datasource
+  register: datasources
+  when: grafana_data_source is defined
+
+
+- name: set datasource fact
+  set_fact:
+    grafana_datasources: "{{ datasources.json | default([]) | map(attribute='name') | list }}"
+  tags: datasource
+
+
+- name: Setup elastic  datasource
+  uri:
+    HEADER_Content-Type: application/json
+    url: http://localhost:3000/api/datasources
+    method: POST
+    user: admin
+    password: "{{ GRAFANA_ADMIN_PASS }}"
+    body: "{{ ELASTICSEACH_DATA_SOURCE | to_json }}"
+    body_format: json
+    force_basic_auth: yes
+  tags: datasource
+  register: result
+  changed_when: result.status == 200
+  ignore_errors: yes
+   #when: grafana_data_source is defined and grafana_data_source.name not in grafana_datasources
+
+- name: enable zabbix plugin
+  shell: |
+    curl -XPOST 'admin:password@localhost:3000/api/plugins/alexanderzobnin-zabbix-app/settings?enabled=true' -d ''
+
+- name: enable grafana-piechart-panel plugin
+  shell: |
+    curl -XPOST 'admin:password@localhost:3000/api/plugins/grafana-piechart-panel/settings?enabled=true' -d ''
+
+- name: enable grafana-piechart-panel plugin
+  shell: |
+    curl -XPOST 'admin:password@localhost:3000/api/plugins/briangann-datatable-panel/settings?enabled=true' -d ''
+
+- name: enable btplc-trend-box-panel plugin
+  shell: |
+    curl -XPOST 'admin:password@localhost:3000/api/plugins/btplc-trend-box-panel/settings?enabled=true' -d ''
+
+- name: enable natel-discrete-panel plugin
+  shell: |
+    curl -XPOST 'admin:password@localhost:3000/api/plugins/natel-discrete-panel/settings?enabled=true' -d ''
+
+
+
+- name: Setup zabbix datasource
+  uri:
+    HEADER_Content-Type: application/json
+    url: http://localhost:3000/api/datasources
+    method: POST
+    user: admin
+    password: "{{ GRAFANA_ADMIN_PASS }}"
+    body: "{{ ZABBIX_DATA_SOURCE | to_json }}"
+    body_format: json
+    force_basic_auth: yes
+  tags: datasource
+  register: result
+  changed_when: result.status == 200
+  ignore_errors: yes
+ # when: grafana_data_source is defined and grafana_data_source.name not in grafana_datasources
+
+
+
+
+

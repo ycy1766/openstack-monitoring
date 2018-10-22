@@ -1,0 +1,3 @@
+
+{"zabbix_export": {"date": "2018-04-28T03:54:51Z", "templates": [{"templates": [{"name": "Custom Template Docker"}], "description": "", "httptests": [], "screens": [], "applications": [], "discovery_rules": [], "groups": [{"name": "Linux servers"}], "name": "Custom Template Ceph Osd", "items": [], "macros": [], "template": "Custom Template Ceph Osd"}], "version": "3.4", "groups": [{"name": "Linux servers"}]}}
+

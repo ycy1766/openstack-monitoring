@@ -1,0 +1,12 @@
+---
+# vars file for docker
+use_docker_local_repo: false
+#docker_local_repo: http://cloud-deploy/docker-ce-stable/Packages
+docker_package_name: docker-ce-17.06.1.ce-1.el7.centos
+
+#use_docker_local_repo: true
+#docker_local_repo: http://{{ deploy_server_hostname }}/docker-ce-stable/Packages
+docker_local_repo: http://{{ deploy_server_hostname }}/docker-ce-stable/
+
+#docker_local_repository: "{{ deploy_server_hostname }}:5000"
+docker_local_repository: false

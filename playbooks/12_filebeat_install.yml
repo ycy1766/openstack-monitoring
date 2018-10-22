@@ -1,0 +1,7 @@
+---
+- name: filebeat installation
+  hosts: filebeat_master
+  become: true
+
+  roles:
+    - filebeat

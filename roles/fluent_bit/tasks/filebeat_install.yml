@@ -1,0 +1,89 @@
+- name: create directories for filebeat
+  file:
+    path: "{{ FILEBEAT_DIRECTORY }}/{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - config
+
+- name: create filebeat config file
+  template:
+    src: filebeat.yml.j2
+    dest: "{{ FILEBEAT_DIRECTORY }}/config/filebeat.yml"
+
+- name: create docker images directory
+  file:
+    path: "{{ DOCKER_IMAGE_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create history_to_syslog.sh
+  template:
+    src: history_to_syslog.sh.j2
+    dest: "/etc/profile.d/history_to_syslog.sh"
+
+- name: config rsyslog for bash_history 
+  lineinfile:
+    path: /etc/rsyslog.conf
+    line: 'local1.notice     /var/log/bash_history/bash_command.log'
+
+- name: create bash_command file
+  copy:
+    content: ""
+    dest: "/var/log/bash_history/bash_command.log"
+    force: no
+    owner: root
+    mode: 0600
+
+- name: copy rsyslog.conf 
+  template: 
+    src: rsyslog.conf.j2
+    dest: "/etc/rsyslog.conf"
+
+
+- name: restart rsyslog
+  systemd: state=restarted name=rsyslog
+
+- name: set logrorate
+  template: 
+    src: logratate.j2
+    dest: "/etc/logrotate.d/commands"
+
+- name: enable lograte 
+  shell: "/usr/sbin/logrotate /etc/logrotate.d/commands"
+
+
+- name: copy docker image file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/docker_images/filebeat.tar"
+    dest: "{{ DOCKER_IMAGE_DIRECTORY }}/filebeat.tar"
+
+- name: Load image
+  docker_image:
+    name: docker.elastic.co/beats/filebeat
+    load_path: "{{ DOCKER_IMAGE_DIRECTORY }}/filebeat.tar"
+
+- name: Create filebeat container
+  docker_container:
+    name: filebeat
+    image: "docker.elastic.co/beats/filebeat:{{ ELK_VERSION }}"
+    network_mode: host
+    restart: yes
+    restart_policy: unless-stopped
+    user: root
+    privileged: no
+    volumes:
+      - "{{ FILEBEAT_DIRECTORY }}/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:Z"
+      - "/var/log/cron:/var/log/cron:Z"
+      - "/var/log/messages:/var/log/messages:Z"
+      - "/var/log/bash_history/bash_command.log:/var/log/bash_history/bash_command.log:Z"
+      - "/var/log/ceph:/var/log/ceph:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/haproxy:/var/log/haproxy:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/nova:/var/log/nova:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/cinder:/var/log/cinder:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/glance:/var/log/glance:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/horizon:/var/log/horizon:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/keystone:/var/log/keystone:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/mariadb:/var/log/mariadb:Z"
+      - "/var/lib/docker/volumes/kolla_logs/_data/neutron:/var/log/neutron:Z"
+

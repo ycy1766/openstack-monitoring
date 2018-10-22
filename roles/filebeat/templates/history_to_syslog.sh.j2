@@ -1,0 +1,18 @@
+
+function history_to_syslog
+{
+        declare command
+        command=$(fc -ln -0)
+        if [ "$command" != "$old_command" ]; then
+                who=$(whoami)
+                cmd=$(history 1)
+                TTY=`tty`
+                HISNAME="`basename $TTY`"
+                ip=`who |grep pts/${HISNAME} |cut -f 2 -d \(|cut -f 1 -d \)`
+                logger -p local3.notice -- IP=$ip USER=$who, PID=$$, PWD=$PWD, CMD=$command
+        fi
+        old_command=$command
+}
+trap history_to_syslog DEBUG
+ 
+ 

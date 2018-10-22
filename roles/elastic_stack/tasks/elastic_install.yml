@@ -1,0 +1,99 @@
+- name: create working directory
+  file:
+    path: "{{ ELASTICSEARCH_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create docker images directory
+  file:
+    path: "{{ DOCKER_IMAGE_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: copy docker image file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/docker_images/{{ item }}.tar"
+    dest: "{{ DOCKER_IMAGE_DIRECTORY }}/{{ item }}.tar"
+  with_items:
+    - elasticsearch
+    - fluentd-osc
+    - kibana  
+
+- name: Load image
+  docker_image:
+    name: monitoring_images
+    load_path: "{{ DOCKER_IMAGE_DIRECTORY }}/{{ item }}.tar"
+  with_items:
+    - elasticsearch
+    - fluentd-osc
+    - kibana  
+
+- name: create directories for elasticsearch
+  file:
+    path: "{{ ELASTICSEARCH_DIRECTORY }}/{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - elasticsearch/config
+    - elasticsearch/data
+    - elasticsearch/log
+    - kibana
+
+- name: set vm.max_map_count
+  sysctl:
+    name: vm.max_map_count
+    value: "{{ VM_MAX_MAP_COUNT }}"
+    state: present
+
+- name: create directories for kibana
+  file:
+    path: "{{ ELASTICSEARCH_DIRECTORY }}/{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - kibana/config
+
+- name: create elasticsearch config file
+  template:
+    src: elasticsearch.yml.j2
+    dest: "{{ ELASTICSEARCH_DIRECTORY }}/elasticsearch/config/elasticsearch.yml"
+    directory_mode: yes
+
+- name: create kibana config file
+  template:
+    src: kibana.yml.j2
+    dest: "{{ ELASTICSEARCH_DIRECTORY }}/kibana/config/kibana.yml"
+
+- name: create directories for fluentd
+  file:
+    path: "{{ ELASTICSEARCH_DIRECTORY }}/{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - fluentd
+
+- name: create fluentd config file
+  template:
+    src: fluent.conf.j2
+    dest: "{{ ELASTICSEARCH_DIRECTORY }}/fluentd/fluent.conf"
+
+- name: create elasticsearch node directory
+  file:
+    path: "{{ ELASTICSEARCH_DATA_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ ELASTICSEARCH_DIRECTORY }}/docker-compose.yml"
+
+- name: execute docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose up -d"
+  args:
+    chdir: "{{ ELASTICSEARCH_DIRECTORY }}"
+
+- name: restart docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose restart"
+  args:
+    chdir: "{{ ELASTICSEARCH_DIRECTORY }}"

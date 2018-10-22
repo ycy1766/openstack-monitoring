@@ -1,0 +1,22 @@
+version: '2'
+services:
+  grafana_server:
+    image: "grafana/grafana:{{ GRAFANA_SERVER_TAG }}"
+    hostname: grafana_server
+    container_name: grafana_server
+    network_mode: host
+    ulimits:
+     nproc: 65535
+     nofile:
+      soft: 20000
+      hard: 40000
+    volumes:
+      - {{ GRAFANA_DIRECTORY }}:/var/lib/grafana:Z
+      #- {{ GRAFANA_DIRECTORY }}/datasources:/etc/grafana/provisioning/datasources:Z
+    environment:
+      - GF_INSTALL_PLUGINS=btplc-trend-box-panel,natel-discrete-panel,briangann-datatable-panel,grafana-piechart-panel,grafana-clock-panel,grafana-simple-json-datasource,alexanderzobnin-zabbix-app
+      - GF_SECURITY_ADMIN_PASSWORD={{ GRAFANA_ADMIN_PASS  }}
+
+    ports:
+      - '3000:3000'
+

@@ -1,0 +1,33 @@
+logging.level: error
+filebeat.prospectors:
+{% for item in filebeat_send_file_lists %}
+- input_type: log
+  enabled: true
+  paths: {{ item.path }}
+  tags: [{% for tag in item.tags %} "{{ tag }}"{% if not loop.last %},{% endif %}{% endfor %}]
+{% endfor %}
+
+
+{% if BEATS_BACKEND == "elasticsearch" %}
+#-------------------------- Elasticsearch output ------------------------------
+output.elasticsearch:
+    hosts: ["{{ ELASTICSEARCH_HOSTNAME }}:{{ ELASTICSEARCH_PORT }}"]
+{% endif %}
+
+
+{% if BEATS_BACKEND == "logstash" %}
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+    hosts: ["{{ ELASTICSEARCH_HOSTNAME }}:{{ LOGSTASH_PORT }}"]
+{% endif %}
+
+
+{% if BEATS_BACKEND == "redis" %}
+#----------------------------- Redis output --------------------------------
+output.redis:
+    hosts: ["{{ REDIS_HOSTNAME }}:{{ REDIS_PORT }}"]
+{% endif %}
+
+
+
+

@@ -1,0 +1,79 @@
+[SERVICE]
+    Flush        2
+    HTTP_Server  On
+    HTTP_Listen  0.0.0.0
+    HTTP_Port    2020
+    Log_Level    info
+
+#### Ceph Logs
+[INPUT]
+    Name        tail
+    Path        /var/log/ceph/ceph-osd.*.log
+    Tag         ceph.osd
+[INPUT]
+    Name        tail
+    Path        /var/log/ceph/ceph-mon.*.log
+    Tag         ceph.mon
+
+
+#### Kolla Logs
+[INPUT]
+    Name         tail
+    Path         /var/log/neutron/*.log
+    Tag         openstack.neutron
+[INPUT]
+    Name         tail
+    Path         /var/log/haproxy/*.log
+    Tag         openstack.neutron
+[INPUT]
+    Name         tail
+    Path         /var/log/nova/*.log
+    Tag         openstack.nova
+[INPUT]
+    Name         tail
+    Path         /var/log/cinder/*.log
+    Tag         openstack.cinder
+[INPUT]
+    Name         tail
+    Path         /var/log/glance/*.log
+    Tag         openstack.glance
+[INPUT]
+    Name         tail
+    Path         /var/log/horizon/*.log
+    Tag         openstack.horizon
+[INPUT]
+    Name         tail
+    Path         /var/log/keystone/*.log
+    Tag         openstack.keystone
+[INPUT]
+    Name         tail
+    Path         /var/log/mariadb/*.log
+    Tag         openstack.mariadb
+[INPUT]
+    Name         tail
+    Path         /var/log/haproxy.log
+    Tag         openstack.lbass_access
+
+
+#### Syslog 
+[INPUT]
+    Name         tail
+    Path         /var/log/bash_history/bash_command.log
+    Tag         syslog.commands
+[INPUT]
+    Name         tail
+    Path         /var/log/messages
+    Tag         syslog.messages
+
+[FILTER]
+    Name record_modifier
+    Match *
+    Record hostname ${HOSTNAME}
+    Record product Awesome_Tool
+
+
+[OUTPUT]
+    Name          forward
+    Match *
+    Host          {{ FLUENTD_HOST }}
+    Port          {{ FLUENTD_PORT }}

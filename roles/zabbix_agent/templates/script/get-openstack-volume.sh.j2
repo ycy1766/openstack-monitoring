@@ -1,0 +1,41 @@
+
+## SetENV ##
+source /etc/zabbix/script/admin-openrc.sh
+source  /zabbix_agent_venv/bin/activate
+
+OPENSTACK="/zabbix_agent_venv/bin/openstack"
+
+if [ $# = 0 ]  
+then  
+ echo "no insert Argument"
+
+elif [ $1 = list ];then
+TEMP_FILE="/tmp/.op_vol.txt"
+CONCNT=`${OPENSTACK} volume service list -f value  --host controller01 -c Binary   >$TEMP_FILE && cat $TEMP_FILE | wc -l`
+DISC_VAR="SERVICE"
+for (( i=1; i<=$CONCNT; i++ ))
+        do
+                CONNAME=${i}p
+                if [ $i -eq 1 ];then
+                        echo "{ \"data\":["
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print "{ \"{{ '{#' }}'$DISC_VAR'}\":" "\"" $1"\"" "}"}'
+                else
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print ",{\"{{ '{#' }}'$DISC_VAR'}\":" "\""$1"\"" "}"}'
+                fi
+
+                if [ $i -eq $CONCNT ];then
+                        echo "]}"
+                fi
+        done
+rm -rf $TEMP_FILE
+
+
+elif [ $1 = state ];then
+	${OPENSTACK} volume  service list --host {{ ansible_hostname }} --service $2 -c State -f value
+elif [ $1 = fail_list ];then
+	${OPENSTACK} volume service list -c State --host {{ ansible_hostname }} -f value | grep -v up 
+elif [ $1 = up_cnt ];then
+	${OPENSTACK} volume service list -c State --host {{ ansible_hostname }} -f value | grep  up | wc -l
+elif [ $1 = total_cnt ];then
+	${OPENSTACK} volume service list --host {{ ansible_hostname }} -f value | wc -l
+fi

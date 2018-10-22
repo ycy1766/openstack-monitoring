@@ -1,0 +1,4 @@
+---
+- import_tasks: pre_install.yml
+- import_tasks: zabbix_install.yml
+- import_tasks: import_template.yml

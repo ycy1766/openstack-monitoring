@@ -1,0 +1,53 @@
+
+## SetENV ##
+source /etc/zabbix/script/admin-openrc-vip.sh
+source  /zabbix_agent_venv/bin/activate
+
+OPENSTACK="/zabbix_agent_venv/bin/openstack"
+
+if [ $# = 0 ]
+then
+ echo "no insert Argument"
+
+## nova-compute up count
+elif [ $1 = com_service_up_cnt ];then
+        ${OPENSTACK}  compute service list  --host {{ ansible_hostname}} -c State  -f value | grep up  | wc -l
+## inux bridge agent up count
+elif [ $1 = br_agent_up_cnt ];then
+        ${OPENSTACK} network agent list --host {{ ansible_hostname}}  -c State -f value | grep -i up | wc -l
+
+
+## nova vcpu
+elif [ $1 = used_vcpu_now ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_now)") |.CPU'
+elif [ $1 = used_vcpu_max ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_max)") |.CPU'
+elif [ $1 = total_vcpu ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(total)") |.CPU'
+
+## nova memory
+elif [ $1 = used_memory_now ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_now)") |."Memory MB"'
+elif [ $1 = used_memory_max ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_max)") |."Memory MB"'
+elif [ $1 = total_memory ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(total)") |."Memory MB"'
+elif [ $1 = free_memory ];then
+        ${OPENSTACK} hypervisor show {{ ansible_hostname}}  -c free_ram_mb -f value
+
+## nova disk
+elif [ $1 = used_disk_now ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_now)") |."Disk GB"'
+elif [ $1 = used_disk_max ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(used_max)") |."Disk GB"'
+elif [ $1 = total_disk ];then
+        ${OPENSTACK} host show {{ ansible_hostname}} -f json | /etc/zabbix/jq  '.[] | select(.Project=="(total)") |."Disk GB"'
+elif [ $1 = free_disk ];then
+        ${OPENSTACK} hypervisor show {{ ansible_hostname}}  -c free_disk_gb -f value
+
+
+## nova vms
+
+elif [ $1 = run_vms ];then
+        ${OPENSTACK} hypervisor  show {{ ansible_hostname}}  -c running_vms -f value
+fi

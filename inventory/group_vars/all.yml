@@ -1,0 +1,175 @@
+# System settings
+TIMEZONE: "Asia/Seoul"
+VM_MAX_MAP_COUNT: 262144
+MONITORING_HOST: "192.168.40.10"
+MONITORING_HOSTNAME: "khoj1-kolla-monitoring"
+MONITORING_DIRECTORY: /monitoring
+DOCKER_IMAGE_DIRECTORY: "{{ MONITORING_DIRECTORY }}/images"
+MONITORING_WEB_REPO_PORT:  18888
+MONITORING_WEB_REPO: "http://{{ MONITORING_HOST }}:{{ MONITORING_WEB_REPO_PORT }}"
+MONITORING_WEB_DIRECTORY: "/home/data"
+MONITORING_REPO: "http://repo.opensourcelab.co.kr/CLOUD_REPOs/cloud-monitoring"
+deploy_server_hostname:: "cloud-deploy"
+#deploy_server_hostname: "192.168.93.2"
+
+# PIP setting
+PIP_DIRECTORY: "/opt"
+PIP_VIRTUALENV_DIRECTORY: "/opt/virtualenv"
+
+# Zabbix setting
+ZABBIX_DIRECTORY: "{{ MONITORING_DIRECTORY }}/zabbix_work_dir"
+ZABBIX_SERVER_TAG: centos-3.4.7
+ZABBIX_DATA_DIRECTORY: "/home/data/mysql"
+ZABBIX_SERVER_HOST: "{{ MONITORING_HOST}}"
+ZABBIX_DB_HOST: "{{ MONITORING_HOST }}"
+ZABBIX_DB_USER: zabbix
+ZABBIX_DB_PASSWORD: password
+ZABBIX_DB_NAME: zabbix
+ZABBIX_DB_ROOT_PASSWORD: password
+ZABBIX_WEB_ADMIN_PASSWORD: zabbix
+ZABBIX_WEB_FONT: "DejaVuSans"
+ZABBIX_WEB_FONT_URL: "{{ MONITORING_REPO }}/fonts/{{ ZABBIX_WEB_FONT }}.ttf"
+
+# Zabbix agnet stting
+ZABBIX_AGENT_DIRECTORY: "{{ MONITORING_DIRECTORY }}/zabbix_agent"
+ZABBIX_AGENT_TAG: centos-3.4.7
+
+# Elasticsearch Settings
+#ELK_VERSION: 6.1.4
+ELK_VERSION: 6.4.0
+ELASTICSEARCH_CLUSTER_NAME: "docker-cluster"
+ELASTICSEARCH_DATA_DIRECTORY: "/home/data/es"
+ELASTICSEARCH_CLUSTERING: false
+ELASTICSEARCH_DIRECTORY: "{{ MONITORING_DIRECTORY }}/elastic_stack"
+ELASTICSEARCH_MIN_MEM: 4
+ELASTICSEARCH_MAX_MEM: 4
+ELASTICSEARCH_HOSTNAME: "{{ MONITORING_HOST }}" 
+ELASTICSEARCH_PORT: 9200
+ELASTICSEARCH_URL: "{{ ELASTICSEARCH_HOSTNAME }}:{{ ELASTICSEARCH_PORT }}"
+
+
+
+## Fluent-bit Setting
+FLUENT_BIT_DIRECTORY: "{{ MONITORING_DIRECTORY }}/fluent_bit"
+
+## Fluentd Settin
+FLUENTD_HOST: "10.1.1.10"
+FLUENTD_PORT: "24224"
+
+#
+## Logstash Setting
+LOGSTASH_PORT: 5044
+
+# Filebeat Settings
+BEATS_BACKEND: logstash
+FILEBEAT_DIRECTORY: "{{ MONITORING_DIRECTORY }}/filebeat"
+filebeat_send_file_lists:
+- type: "messages"
+  path: /var/log/messages
+  tags: ["syslog", "messages"]
+- type: "cron"
+  path: /var/log/cron
+  tags: ["syslog", "cron"]
+- type: "commands"
+  path: /var/log/bash_history/bash_command.log
+  tags: [ "commands"]
+- type: "ceph-mon"
+  path: /var/log/ceph/ceph-mon.*.log
+  tags: ["ceph", "mon"]
+- type: "ceph-osd"
+  path: /var/log/ceph/ceph-osd.*.log
+  tags: ["ceph", "osd"]
+- type: "haproxy"
+  path: /var/log/haproxy/*.log
+  tags: ["openstack", "haproxy"]
+- type: "nova"
+  path: /var/log/nova/*.log
+  tags: ["openstack", "nova"]
+- type: "cinder"
+  path: /var/log/cinder/*.log
+  tags: ["openstack", "cinder"]
+- type: "glance"
+  path: /var/log/glance/*.log
+  tags: ["openstack", "glance"]
+- type: "horizon"
+  path: /var/log/horizon/*.log
+  tags: ["openstack", "horizon"]
+- type: "keystone"
+  path: /var/log/keystone/*.log
+  tags: ["openstack", "keystone"]
+- type: "mariadb"
+  path: /var/log/mariadb/*.log
+  tags: ["openstack", "mariadb"]
+- type: "neutron"
+  path: /var/log/neutron/*.log
+  tags: ["openstack", "neutron"]
+
+ 
+# Grafana Setting
+GRAFANA_DIRECTORY: "{{ MONITORING_DIRECTORY }}/grafana_work_dir"
+#GRAFANA_SERVER_TAG: 5.0.2
+GRAFANA_SERVER_TAG: 5.1.4
+GRAFANA_SERVER_HOST: "{{ MONITORING_HOST }}"
+GRAFANA_SERVER_PORT: 3000
+
+#GRAFANA_USER: "admin"
+GRAFANA_ADMIN_PASS: "password"
+
+ELASTICSEACH_DATA_SOURCE: {
+        isDefault: yes,
+        database: "logstash*",
+        typeLogoUrl: "public/app/plugins/datasource/elasticsearch/img/elasticsearch.svg",
+        name: elasticsearch,
+        type: elasticsearch,
+        url: 'http://{{ ELASTICSEARCH_URL }}',
+        access: proxy,
+        basicAuth: false,
+        jsonData: {
+          esVersion: 56,
+          keepCookies: [],
+          maxConcurrentShardRequests: 256,
+          timeField: "@timestamp"
+       },
+}
+
+ZABBIX_DATA_SOURCE: {
+        isDefault: false,
+        database: "",
+        typeLogoUrl: "public/plugins/alexanderzobnin-zabbix-datasource/img/zabbix_app_logo.svg",
+        name: zabbix,
+        type: "alexanderzobnin-zabbix-datasource",
+        url: 'http://{{ ZABBIX_SERVER_HOST }}/api_jsonrpc.php',
+        access: proxy,
+        basicAuth: false,
+        jsonData: {
+          dbConnection: { enable: false },
+          keepCookies: {},
+          password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}",
+          username: "Admin"
+       },
+
+}
+
+## Openstack API
+JQ: "/etc/zabbix/jq"
+MYSQLSH: "/etc/zabbix/mysqlsh"
+CURL: "curl -s --connect-timeout 30"
+OS_USER_DOMAIN_NAME: "default"
+OS_USERNAME: "admin"
+OS_PASSWORD: "adminpassword"
+OS_PROJECT_DOMAIN_NAME: "default"
+OS_PROJECT_NAME: "admin"
+OS_TENANT_NAME: "admin"
+
+KOLLA_INTERNAL_VIP: "10.2.1.200" 
+
+MYSQL_USER: "root"
+MYSQL_PASSWORD: "dbpassword"
+RABBIT_MQ_USER: "openstack"
+RABBIT_MQ_PASSWORD: M3Pt8Bvyy6ecva07IPnGqOa7HPXTUsnNI81cmlaf
+
+HAPROXY_USER: "openstack"
+HAPROXYMQ_PASSWORD: "JatHuJ06y99SUgfxoeNPh5cGpfgq0pHl6lBzwH42"
+
+
+

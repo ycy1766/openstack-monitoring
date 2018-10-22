@@ -1,0 +1,15 @@
+---
+- name: Zabbix_server delete
+  hosts: zabbix_master
+  become: true
+
+  tasks:
+  - name: down docker-compose
+    shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose down"
+    args:
+      chdir: "{{ ZABBIX_DIRECTORY }}"
+
+  - name: clean artifact path
+    file:
+      state: absent
+      path: "{{ ZABBIX_DIRECTORY }}"

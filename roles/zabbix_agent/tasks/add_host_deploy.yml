@@ -1,0 +1,24 @@
+- name: Create a new host or update an existing zabbix host's info
+  local_action:
+    module: zabbix_host
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: Admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    host_name: "{{ ansible_hostname }}"
+    visible_name: "{{ ansible_hostname }}"
+    host_groups:
+      - Linux servers
+    link_templates:
+      - Custom Template Deploy
+    status: enabled
+    state: present
+    inventory_mode: automatic
+    interfaces:
+      - type: 1
+        main: 1
+        useip: 1
+        ip: "{{ ansible_host }}"
+        dns: ""
+        port: 10050
+
+

@@ -1,0 +1,55 @@
+#!/bin/sh
+
+HEADER="Accept: application/json "
+GET_URL="http://localhost/containers/json"
+JQ="{{ JQ }}"
+SOCKET="--unix-socket /var/run/docker.sock"
+
+if [ $# = 0 ]
+then
+       	echo "no insert Argument"
+
+elif [ $1 = get_container ];then
+CONCNT=`{{ CURL }} -H "$HEADER" $SOCKET $GET_URL | $JQ  '.[].Names' | awk -F\" '{print $2}' | awk -F/ '{print $2}' | sed '/^$/d'  >/tmp/.con && cat /tmp/.con | wc -l`
+
+for (( i=1; i<=$CONCNT; i++ ))
+        do
+                CONNAME=${i}p
+                if [ $i -eq 1 ];then
+                        echo "{ \"data\":["
+                        sed -n ${CONNAME} /tmp/.con | awk '{print "{ \"{{ '{#' }}CONTAINER}\":\""  $1  "\"}"}'
+                else
+                        sed -n ${CONNAME} /tmp/.con | awk '{print ",{\"{{ '{#' }}CONTAINER}\":\"" $1 "\"}"}'
+                fi
+
+                if [ $i -eq $CONCNT ];then
+                        echo "]}"
+                fi
+        done
+rm -rf /tmp/.con
+
+
+elif [ $1 = stat ];then
+	GET_URL=" http://localhost/containers/$2/json"
+
+	if [ $3 = status ];then
+	        {{ CURL }} -H "$HEADER" $SOCKET $GET_URL | $JQ '.State.Status'
+	fi
+
+elif [ $1 = run_cnt ];then
+	GET_URL="http://localhost/containers/json?all=1"
+	{{ CURL }} -H "$HEADER" $SOCKET $GET_URL | $JQ '.[]| select(.State=="running")|.Id' | wc -l
+
+elif [ $1 = all_cnt ];then
+	GET_URL="http://localhost/containers/json?all=1"
+	{{ CURL }} -H "$HEADER" $SOCKET $GET_URL | $JQ '.[].Id' | wc -l
+
+elif [ $1 = fail ];then
+	GET_URL="http://localhost/containers/json?all=1"
+	{{ CURL }} -H "$HEADER" $SOCKET $GET_URL | $JQ '.[]| select(.State!="running")|.Names[]'
+
+
+fi
+
+
+

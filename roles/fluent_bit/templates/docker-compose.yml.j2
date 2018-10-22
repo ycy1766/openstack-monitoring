@@ -1,0 +1,23 @@
+version: '2'
+services:
+  filebeat:
+    image: "docker.elastic.co/beats/filebeat:{{ ELK_VERSION }}"
+    hostname: "filebeat"
+    container_name: "filebeat"
+    volumes:
+      - {{ FILEBEAT_DIRECTORY }}/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:Z
+      - /var/log/cron:/var/log/cron:Z
+      - /var/log/messages:/var/log/messages:Z
+      - /var/log/run_commands:/var/log/run_commands:Z
+      - /var/log/ceph:/var/log/ceph:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/haproxy:/var/log/haproxy:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/nova:/var/log/nova:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/cinder:/var/log/cinder:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/glance:/var/log/glance:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/horizon:/var/log/horizon:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/keystone:/var/log/keystone:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/mariadb:/var/log/mariadb:Z
+      - /var/lib/docker/volumes/kolla_logs/_data/neutron:/var/log/neutron:Z
+
+    network_mode: host
+

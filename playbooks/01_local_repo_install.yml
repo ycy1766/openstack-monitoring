@@ -1,0 +1,7 @@
+---
+- name: monitoring_web_repo_installation
+  hosts: monitoring_master
+  become: true
+
+  roles:
+    - local_repo

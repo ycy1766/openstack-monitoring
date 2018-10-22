@@ -1,0 +1,16 @@
+- name: install epel packages
+  yum:
+    name: epel-release
+    state: present
+
+- name: install pre-required packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - device-mapper-persistent-data
+    - libselinux-python
+    - libtool-ltdl
+    - libseccomp
+    - lvm2
+    - yum-utils

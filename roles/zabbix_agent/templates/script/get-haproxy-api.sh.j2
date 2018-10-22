@@ -1,0 +1,32 @@
+#!/bin/sh
+
+JQ="{{ JQ }}"
+CSV2JSON="/etc/zabbix/csv2json.py"
+GET_URL="http://{{ ansible_hostname }}:1984/\;csv"
+
+
+if [ $# = 0 ]
+then
+        echo "no insert Argument"
+
+elif [ $1 = total_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="{{ ansible_hostname }}") |."# pxname"' | wc -l
+
+elif [ $1 = up_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="{{ ansible_hostname }}"  and .status=="UP") |."# pxname"' | wc -l
+
+elif [ $1 = frontend_total_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="FRONTEND") |."# pxname"' | wc -l
+
+elif [ $1 = frontend_up_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="FRONTEND"  and .status=="OPEN") |."# pxname"' | wc -l
+
+elif [ $1 = backend_total_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="BACKEND") |."# pxname"' | wc -l
+
+elif [ $1 = backend_up_cnt ];then
+	{{ CURL }} -u  {{ HAPROXY_USER }}:{{ HAPROXYMQ_PASSWORD}} $GET_URL | python $CSV2JSON | $JQ '.| select(.svname=="BACKEND"  and .status=="UP") |."# pxname"' | wc -l
+
+
+
+fi

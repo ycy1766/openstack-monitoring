@@ -1,0 +1,55 @@
+#!/bin/sh
+
+
+
+export TERM=dumb
+
+MYSQL_SELECT=" sudo {{ MYSQLSH }} -h{{ ansible_hostname }} -u{{ MYSQL_USER }} -p{{ MYSQL_PASSWORD }}  --json"
+
+
+if [ $# = 0 ];then
+  echo "no insert Argument"
+
+## InnoDB ##
+elif [ $1 = questions ];then
+  QUERY="SHOW GLOBAL STATUS LIKE 'Questions';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.Value'
+
+elif [ $1 = com_select ];then
+  QUERY="SHOW GLOBAL STATUS LIKE 'Com_select';"  
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.Value'
+
+elif [ $1 = com_update ];then
+  QUERY="SHOW GLOBAL STATUS LIKE 'Com_update';"  
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.Value'
+
+elif [ $1 = com_delete ];then
+  QUERY="SHOW GLOBAL STATUS LIKE 'Com_delete';"  
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.Value'
+
+elif [ $1 = com_insert ];then
+  QUERY="SHOW GLOBAL STATUS LIKE 'Com_insert';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.Value'
+
+## Galera Cluster ##
+elif [ $1 = wsrep_cluster_status ];then
+  QUERY="select VARIABLE_VALUE from information_schema.GLOBAL_STATUS where VARIABLE_NAME = 'wsrep_cluster_status';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.VARIABLE_VALUE'
+
+elif [ $1 = wsrep_cluster_size ];then
+  QUERY="select VARIABLE_VALUE from information_schema.GLOBAL_STATUS where VARIABLE_NAME = 'wsrep_cluster_size';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.VARIABLE_VALUE'
+
+elif [ $1 = wsrep_repl_data_bytes ];then
+  QUERY="select VARIABLE_VALUE from information_schema.GLOBAL_STATUS where VARIABLE_NAME = 'wsrep_repl_data_bytes';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.VARIABLE_VALUE'
+
+elif [ $1 = wsrep_flow_control_paused ];then
+  QUERY="select VARIABLE_VALUE from information_schema.GLOBAL_STATUS where VARIABLE_NAME = 'wsrep_flow_control_paused';"
+  ${MYSQL_SELECT} --sql -e "${QUERY}" | {{ JQ }} '.rows[]?.VARIABLE_VALUE'
+
+
+
+
+
+fi

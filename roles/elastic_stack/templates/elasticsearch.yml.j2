@@ -1,0 +1,16 @@
+node.name: elasticsearch-{{ inventory_hostname }}
+path.data: /var/data/elasticsearch
+path.logs: /var/log/elasticsearch
+
+xpack.security.enabled: false
+xpack.reporting.enabled: false
+xpack.watcher.enabled: false
+xpack.ml.enabled: false
+xpack.graph.enabled: false
+
+
+
+{% if ELASTICSEARCH_CLUSTERING %}
+discovery.zen.ping.unicast.hosts: [{% for master in groups['elk_master']%}"{{ master }}"{% if not loop.last %},{% endif %}{% endfor %}]
+discovery.zen.minimum_master_nodes: 2
+{% endif %}

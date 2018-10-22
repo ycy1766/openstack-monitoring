@@ -1,0 +1,68 @@
+OS_TOKEN=` sh /etc/zabbix/script/get-openstack-token.sh`
+
+if [ $# = 0 ]  
+then  
+  echo "no insert Argument"
+elif [ $1 = list ]  
+then  
+TEMP_FILE="/tmp/.op_hy.txt"
+CONCNT=`{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors | {{ JQ }}  '.hypervisors[].hypervisor_hostname'  >$TEMP_FILE && cat $TEMP_FILE | wc -l`
+DISC_VAR="HYPERVISOR"
+for (( i=1; i<=$CONCNT; i++ ))
+        do
+                CONNAME=${i}p
+                if [ $i -eq 1 ];then
+                        echo "{ \"data\":["
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print "{ \"{{ '{#' }}'$DISC_VAR'}\":"  $1 "}"}'
+                else
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print ",{\"{{ '{#' }}'$DISC_VAR'}\":" $1 "}"}'
+                fi
+
+                if [ $i -eq $CONCNT ];then
+                        echo "]}"
+                fi
+        done
+rm -rf $TEMP_FILE
+
+
+elif [ $1 = state ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors \
+| {{ JQ }}  -r --arg  HYPERVISOR "$2"  '.hypervisors[] | select(.hypervisor_hostname==$HYPERVISOR)  | .state'
+
+elif [ $1 = fail_list ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors \
+| {{ JQ }}  '.hypervisors[] | select(.state!="up").hypervisor_hostname'| awk '{printf("%s",$0)}'
+
+elif [ $1 = up_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors \
+| {{ JQ }}  '.hypervisors[] | select(.state=="up") | .hypervisor_hostname ' | wc -l
+
+elif [ $1 = total_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors \
+| {{ JQ }}  '.hypervisors[].hypervisor_hostname ' | wc -l
+
+elif [ $1 = vcpu_used ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors/detail \
+| {{ JQ }}  -r --arg  HYPERVISOR "$2"  '.hypervisors[] | select(.hypervisor_hostname==$HYPERVISOR)  | .vcpus_used ' 
+
+elif [ $1 = memory_mb ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors/detail \
+| {{ JQ }}  -r --arg  HYPERVISOR "$2"  '.hypervisors[] | select(.hypervisor_hostname==$HYPERVISOR)  | .memory_mb '
+
+elif [ $1 = memory_mb_used ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors/detail \
+| {{ JQ }}  -r --arg  HYPERVISOR "$2"  '.hypervisors[] | select(.hypervisor_hostname==$HYPERVISOR)  |  .memory_mb_used '
+
+elif [ $1 = running_vms ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:8774/v2.1/os-hypervisors/detail \
+| {{ JQ }}  -r --arg  HYPERVISOR "$2"  '.hypervisors[] | select(.hypervisor_hostname==$HYPERVISOR)  | .running_vms '
+
+fi

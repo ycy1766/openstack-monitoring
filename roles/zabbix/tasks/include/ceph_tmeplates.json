@@ -1,0 +1,110 @@
+{
+  "zabbix_export": {
+    "version": "3.4",
+    "date": "2018-03-19T04:09:50Z",
+    "groups": {
+      "group": { "name": "Templates" }
+    },
+    "templates": {
+      "template": {
+        "template": "Custom Template Ceph Admin",
+        "name": "Custom Template Ceph Admin",
+        "groups": {
+          "group": { "name": "Templates" }
+        },
+        "items": {
+          "item": [
+            {
+              "name": "ceph health",
+              "type": "0",
+              "key": "ceph.rest_api[health]",
+              "delay": "10s",
+              "history": "90d",
+              "trends": "0",
+              "status": "0",
+              "value_type": "1",
+              "snmpv3_securitylevel": "0",
+              "snmpv3_authprotocol": "0",
+              "snmpv3_privprotocol": "0",
+              "authtype": "0",
+              "inventory_link": "0"
+            },
+            {
+              "name": "ceph osd count",
+              "type": "0",
+              "key": "ceph.rest_api_uposd",
+              "delay": "10s",
+              "history": "90d",
+              "trends": "365d",
+              "status": "0",
+              "value_type": "3",
+              "snmpv3_securitylevel": "0",
+              "snmpv3_authprotocol": "0",
+              "snmpv3_privprotocol": "0",
+              "authtype": "0",
+              "inventory_link": "0"
+            }
+          ]
+        }
+      }
+    },
+    "triggers": {
+      "trigger": [
+        {
+          "expression": "{Custom Template Ceph Admin:ceph.rest_api[health].diff()}<>0",
+          "recovery_mode": "0",
+          "name": "ceph health false",
+          "correlation_mode": "0",
+          "status": "0",
+          "priority": "5",
+          "type": "0",
+          "manual_close": "0"
+        },
+        {
+          "expression": "{Custom Template Ceph Admin:ceph.rest_api_uposd.last()}<6",
+          "recovery_mode": "0",
+          "name": "ceph osd up count check",
+          "correlation_mode": "0",
+          "status": "0",
+          "priority": "4",
+          "type": "0",
+          "manual_close": "0"
+        }
+      ]
+    },
+    "graphs": {
+      "graph": {
+        "name": "Custom Ceph Osd Count",
+        "width": "900",
+        "height": "200",
+        "yaxismin": "0.0000",
+        "yaxismax": "100.0000",
+        "show_work_period": "1",
+        "show_triggers": "1",
+        "type": "0",
+        "show_legend": "1",
+        "show_3d": "0",
+        "percent_left": "0.0000",
+        "percent_right": "0.0000",
+        "ymin_type_1": "0",
+        "ymax_type_1": "0",
+        "ymin_item_1": "0",
+        "ymax_item_1": "0",
+        "graph_items": {
+          "graph_item": {
+            "sortorder": "0",
+            "drawtype": "0",
+            "color": "1A7C11",
+            "yaxisside": "0",
+            "calc_fnc": "2",
+            "type": "0",
+            "item": {
+              "host": "Custom Template Ceph Admin",
+              "key": "ceph.rest_api_uposd"
+            }
+          }
+        }
+      }
+    }
+  }
+}

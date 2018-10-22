@@ -1,0 +1,32 @@
+---
+
+- import_tasks: zabbix_agent_install.yml
+
+- import_tasks: 
+    add_host_ceph_mon.yml
+  when: '"zabbix_agent_ceph_mon" in group_names'
+
+- import_tasks: 
+    add_host_ceph_mgr.yml
+  when: '"zabbix_agent_ceph_mgr" in group_names'
+
+- import_tasks: 
+    add_host_ceph_osd.yml
+  when: '"zabbix_agent_ceph_osd" in group_names'
+
+- import_tasks: 
+    add_host_ceph.yml
+  when: '"zabbix_agent_ceph" in group_names'
+
+- import_tasks: 
+    add_host_openstack_controller.yml
+  when: '"zabbix_agent_openstack_controller" in group_names'
+
+- import_tasks: 
+    add_host_openstack_compute.yml
+  when: '"zabbix_agent_openstack_compute" in group_names'
+
+- import_tasks: 
+    add_host_mon.yml
+  when: '"zabbix_agent_mon" in group_names'
+

@@ -1,0 +1,101 @@
+input {
+  beats {
+      port => 5044
+  }
+}
+
+
+filter {
+ if "mon" in [tags] {
+ 	grok {
+        	match => [ "message", "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}%{WORD:mon_number}%{SPACE}%{WORD:mon_number}%{SPACE}%{WORD:mon_number}\(cluster\)%{SPACE}log%{SPACE}\[%{WORD:log_level}\]%{SPACE}:%{GREEDYDATA:log_message}"]
+        	add_field => [ "received_at", "%{@timestamp}" ]
+        	add_field => [ "received_from", "%{host}" ]
+	remove_tag => ['_grokparsefailure']
+        }
+
+    	if "_grokparsefailure" in [tags] {
+          drop {}
+        }
+
+        syslog_pri { }
+        }
+ if "haproxy" in [tags] {
+ 	grok {
+        	match => [ "message", "%{SYSLOGTIMESTAMP:logdate}%{SPACE}%{IP:vip}%{SPACE}haproxy\[%{NUMBER:pid}\]:%{SPACE}%{IP:client_ip}:%{NUMBER:client_port}%{SPACE}\[%{GREEDYDATA}\]%{SPACE}%{NOTSPACE: frontend_name}%{SPACE}%{NOTSPACE:backend_name}/%{SPACE}%{NOTSPACE:server_name}%{SPACE}%{NUMBER:TR}/%{NUMBER:Tw}/%{NUMBER:Tc}/%{NUMBER:Tr}/%{NUMBER:Ta}%{SPACE}%{NUMBER:status_code}%{SPACE}%{NUMBER:bytes_read}%{SPACE}%{NOTSPACE:captured_request_cookie}%{SPACE}%{NOTSPACE:captured_response_cookie}%{SPACE}%{NOTSPACE:termination_state}%{SPACE}%{NUMBER:actconn}/%{SPACE}%{NUMBER:feconn}/%{SPACE}%{NUMBER:beconn}/%{SPACE}%{NUMBER:srv_conn}/%{SPACE}%{NUMBER:retries}%{SPACE}%{NUMBER:srv_queue}/%{SPACE}%{NUMBER:backend_queue}%{SPACE}\"%{NOTSPACE:http_method}%{SPACE}%{NOTSPACE:http_request}%{SPACE}%{NOTSPACE:http_version}\"" ]     
+   	add_field => [ "received_at", "%{@timestamp}" ]
+       	add_field => [ "received_from", "%{host}" ]
+	remove_tag => ['_grokparsefailure']
+        }
+
+    	if "_grokparsefailure" in [tags] {
+          drop {}
+        }
+
+        syslog_pri { }
+        }
+
+
+
+
+ if "commands" in [tags] {
+ 	grok {
+		match => ["message",  "%{SYSLOGTIMESTAMP:syslog_timestamp}%{SPACE}%{GREEDYDATA:hostname}%{SPACE}%{WORD:syslog_user}:%{SPACE}IP=%{IP:client}%{SPACE}USER=%{WORD:user},%{SPACE}PID=%{WORD:pid},%{SPACE}PWD=%{GREEDYDATA:pwd},%{SPACE}CMD=%{GREEDYDATA:cmd}"]
+		#match => ["message", "%{SYSLOGTIMESTAMP:syslog_timestamp}%{SPACE}%{GREEDYDATA:hostname} root: IP=%{IP:client}%{SPACE}USER=%{WORD:user},%{SPACE}PID=%{WORD:pid},%{SPACE}PWD=%{GREEDYDATA:pwd},%{SPACE}CMD=%{GREEDYDATA:cmd}" ]
+
+        	add_field => [ "received_at", "%{@timestamp}" ]
+        	add_field => [ "received_from", "%{host}" ]
+	remove_tag => ['_grokparsefailure']
+        }
+
+    	if "_grokparsefailure" in [tags] {
+          drop {}
+        }
+
+        syslog_pri { }
+        }
+ if "openstack" in [tags] {
+        grok {
+                match => ["message", "(?m)^%{TIMESTAMP_ISO8601:logdate}%{SPACE}%{NUMBER:pid}?%{SPACE}?(?<loglevel>AUDIT|CRITICAL|DEBUG|INFO|TRACE|WARNING|ERROR) \[?\b%{NOTSPACE:module}\b\]?%{SPACE}(\[(?:(req-%{UUID:request_id_list}|%{UUID:request_id_list}|%{BASE16NUM}|None|-|%{SPACE}))+\])?%{SPACE}%{GREEDYDATA:openstack_message}"]
+                #match => [ "message", "(?m)^%{TIMESTAMP_ISO8601:logdate}%{SPACE}%{NUMBER:pid}?%{SPACE}?(?<loglevel>AUDIT|CRITICAL|DEBUG|INFO|TRACE|WARNING|ERROR) \[?\b%{NOTSPACE:module}\b\]?%{SPACE}\[\-\]%{SPACE}%{NOTSPACE:requesterip}%{SPACE}\-%{SPACE}\-%{SPACE}\[%{NOTSPACE:req_date} %{NOTSPACE:req_time}\]%{SPACE}\"%{NOTSPACE:method} %{NOTSPACE:url_path} %{NOTSPACE:http_ver}\" %{NUMBER:response} %{NUMBER:bytes} %{NUMBER:seconds}"]
+                add_field => [ "received_at", "%{@timestamp}" ]
+                add_field => [ "received_from", "%{host}" ]
+        remove_tag => ['_grokparsefailure']
+        }
+
+        if "_grokparsefailure" in [tags] {
+          drop {}
+        }
+        syslog_pri { }
+        }
+
+
+
+
+
+ if "syslog" in [tags] {
+ 	grok {
+                match => [ "message" ,"%{SYSLOGTIMESTAMP:syslog_timestamp} %{DATA:syslog_hostname} %{SYSLOGPROG}:%{GREEDYDATA:syslog_message}" ]
+        	add_field => [ "received_at", "%{@timestamp}" ]
+        	add_field => [ "received_from", "%{host}" ]
+        }
+        syslog_pri { }
+        }
+
+
+
+ 
+
+   
+}
+
+
+
+
+
+
+output {
+  elasticsearch {
+      hosts => "localhost:9200"
+  }
+}

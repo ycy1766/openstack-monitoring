@@ -1,0 +1,7 @@
+---
+- name: ceph_docker_installation
+  hosts: ceph_docker_master
+  become: true
+
+  roles:
+    - docker

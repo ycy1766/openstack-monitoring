@@ -1,0 +1,80 @@
+version: '2'
+services:
+  mariadb_server:
+    image: "centos/mariadb-101-centos7"
+    hostname: mariadb_server
+    container_name: mariadb_server
+    network_mode: host
+    ulimits:
+     nproc: 65535
+     nofile:
+      soft: 20000
+      hard: 40000
+    volumes:
+      - {{ ZABBIX_DATA_DIRECTORY }}:/var/lib/mysql:Z
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - MYSQL_USER={{ ZABBIX_DB_USER }}
+      - MYSQL_PASSWORD={{ ZABBIX_DB_PASSWORD }}
+      - MYSQL_DATABASE={{ ZABBIX_DB_NAME }}
+      - MYSQL_ROOT_PASSWORD={{ ZABBIX_DB_ROOT_PASSWORD }}
+      - MYSQL_MAX_CONNECTIONS=1000
+    ports:
+      - '3306:3306'
+
+  zabbix_server:
+    image: "zabbix/zabbix-server-mysql:{{ ZABBIX_SERVER_TAG }}"
+    hostname: zabbix_server
+    container_name: zabbix_server
+    network_mode: host
+    environment:
+      - DB_SERVER_HOST={{ ZABBIX_SERVER_HOST }}
+      - MYSQL_USER={{ ZABBIX_DB_USER }}
+      - MYSQL_PASSWORD={{ ZABBIX_DB_PASSWORD }}
+      - MYSQL_DATABASE={{ ZABBIX_DB_NAME }}
+      - MYSQL_ROOT_PASSWORD={{ ZABBIX_DB_ROOT_PASSWORD }}
+      #- ZBX_HISTORYSTORAGEURL={{ ELASTICSEARCH_URL }}
+      #- ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ulimits:
+     nproc: 65535
+     nofile:
+      soft: 20000
+      hard: 40000
+    ports:
+      - '10051:10051'
+    depends_on:
+      - mariadb_server
+
+  zabbix_web:
+    image: "zabbix/zabbix-web-nginx-mysql:{{ ZABBIX_SERVER_TAG }}"
+    hostname: zabbix_web
+    container_name: zabbix_web
+    network_mode: host
+    environment:
+      - ZBX_SERVER_HOST={{ ZABBIX_SERVER_HOST }}
+      - DB_SERVER_HOST={{ ZABBIX_DB_HOST }}
+      - MYSQL_USER={{ ZABBIX_DB_USER }}
+      - MYSQL_PASSWORD={{ ZABBIX_DB_PASSWORD }}
+      - MYSQL_DATABASE={{ ZABBIX_DB_NAME }}
+      - MYSQL_ROOT_PASSWORD={{ ZABBIX_DB_ROOT_PASSWORD }}
+      - PHP_TZ=Asia/Seoul
+    ulimits:
+     nproc: 65535
+     nofile:
+      soft: 20000
+      hard: 40000
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+     # - {{ ZABBIX_DIRECTORY }}/zabbix_web/conf:/etc/zabbix/web/:Z
+      - {{ ZABBIX_DIRECTORY }}/zabbix_web/font/dejavu/:/usr/share/fonts/ttf-dejavu/:Z
+    ports:
+      - '80:80'
+    depends_on:
+      - mariadb_server
+
+

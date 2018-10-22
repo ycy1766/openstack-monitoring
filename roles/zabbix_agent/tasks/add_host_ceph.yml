@@ -1,0 +1,77 @@
+- name: Install Ceph Api
+  template:
+    src: ceph-rest-api.service.j2
+    dest: "/usr/lib/systemd/system/ceph-rest-api.service"
+
+- name: Enable Ceph Api
+  systemd:
+    name: ceph-rest-api
+    state: started
+    enabled: True
+
+- name: Create a new host or update an existing zabbix host's info
+  local_action:
+    module: zabbix_host
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: Admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    host_name: "{{ ansible_hostname }}"
+    visible_name: "{{ ansible_hostname }}"
+    host_groups:
+      - Linux servers
+    link_templates:
+      - Custom Template OS Linux
+      - Custom Template Ceph Osd
+      - Custom Template Ceph Mgr
+    status: enabled
+    state: present
+    inventory_mode: automatic
+    interfaces:
+      - type: 1
+        main: 1
+        useip: 1
+        ip: "{{ ansible_host }}"
+        dns: ""
+        port: 10050
+
+### luminous zabbix plugin
+- name: install zabbinx_repo
+  shell: "rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-2.el7.noarch.rpm"
+  ignore_errors: True
+
+- name: install zabbix_sender
+  shell: "yum install -y zabbix-sender.x86_64"
+  ignore_errors: True
+
+- name: enable zabbix module
+  shell: "ceph mgr module enable zabbix"
+
+- name: config zabbix host
+  shell: "ceph zabbix config-set zabbix_host {{ ZABBIX_SERVER_HOST }}"
+
+- name: config zabbix identifier
+  shell: "ceph zabbix config-set identifier {{ ansible_hostname }}"
+
+- name: config zabbix_sender
+  shell: "ceph zabbix config-set zabbix_sender /usr/bin/zabbix_sender"
+
+- name: config zabbix port 
+  shell: "ceph zabbix config-set zabbix_port 10051"
+
+- name: config zabbix interval
+  shell: "ceph zabbix config-set interval 60"
+
+- name: add cron
+  shell: "echo '*/1 * * * * root ceph zabbix send ' > /etc/cron.d/ceph"
+
+
+- name: test
+  shell: "ceph mgr module disable  zabbix"
+
+- name: enable zabbix module
+  shell: "ceph mgr module enable zabbix"
+
+
+
+
+

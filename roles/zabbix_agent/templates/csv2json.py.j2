@@ -1,0 +1,7 @@
+import csv
+import json
+import sys
+
+for row in csv.DictReader(sys.stdin):
+    json.dump(row, sys.stdout)
+    sys.stdout.write('\n')

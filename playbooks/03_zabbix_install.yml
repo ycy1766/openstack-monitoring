@@ -1,0 +1,7 @@
+---
+- name: Zabbix server installation
+  hosts: zabbix_master
+  become: true
+
+  roles:
+    - zabbix_server

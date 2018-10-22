@@ -1,0 +1,25 @@
+OS_TOKEN=` sh /etc/zabbix/script/get-openstack-token-deploy.sh`
+
+
+if [ $1 = state ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ KOLLA_INTERNAL_VIP }}:8774/v2.1/os-services \
+| {{ JQ }}  -r --arg  HOSTNAME $2 --arg SERVICE $3   '.services[] | select(.host==$HOSTNAME and .binary==$SERVICE) | .state '
+
+elif [ $1 = fail_list ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ KOLLA_INTERNAL_VIP }}:8774/v2.1/os-services \
+| {{ JQ }} -r --arg  HOSTNAME $2 '.services[] | select(.host==$HOSTNAME and .state!="up") .binary  '|  awk '{printf("%s",$0)}'
+
+elif [ $1 = up_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ KOLLA_INTERNAL_VIP }}:8774/v2.1/os-services \
+| {{ JQ }}  -r --arg  HOSTNAME $2 '.services[] | select(.host==$HOSTNAME and .state=="up") | .binary  '  | wc -l
+
+elif [ $1 = total_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ KOLLA_INTERNAL_VIP }}:8774/v2.1/os-services \
+| {{ JQ }}  -r --arg  HOSTNAME $2 '.services[] | select(.host==$HOSTNAME ) | .binary  ' | wc -l
+
+
+fi

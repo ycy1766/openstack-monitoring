@@ -1,0 +1,3 @@
+---
+- import_tasks: grafana_install.yml
+- import_tasks: add_dash.yml

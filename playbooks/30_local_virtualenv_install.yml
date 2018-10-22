@@ -1,0 +1,20 @@
+---
+- name: monitoring local virtualenv installation
+  hosts: monitoring_master 
+  become: true
+
+  tasks:
+  - name: copy local virtualenv file
+    get_url:
+      url: "{{ MONITORING_REPO }}/virtualenv/mon_virtualenv/virtualenv-15.2.0.tar.gz"
+      dest: "{{ PIP_DIRECTORY }}/virtualenv-15.2.0.tar.gz"
+
+  - name: install virtualenv
+    shell: "sudo pip install {{ PIP_DIRECTORY }}/virtualenv-15.2.0.tar.gz"
+
+#  - name: copy virtualenv-mon file
+#    unarchive:
+#      src: "{{ MONITORING_REPO }}/virtualenv/virtualenv_mon.tar"
+#      dest: "{{ PIP_DIRECTORY }}"
+#      remote_src: yes
+#      list_files: "yes"

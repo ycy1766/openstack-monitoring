@@ -1,0 +1,11 @@
+#!/bin/sh
+
+export OS_TOKEN=`sh /etc/zabbix/script/get-openstack-token.sh`
+export OS_TOKEN=`echo ${OS_TOKEN} | sed 's/\\r//g'`
+export GET_URL="http://{{ ansible_hostname }}:35357/v3/projects"
+
+
+{{ CURL }} -H "X-Auth-Token: ${OS_TOKEN}" ${GET_URL} |\
+ {{ JQ }} '.projects[] | select(.name=="{{ OS_PROJECT_NAME }}")|.id'
+
+

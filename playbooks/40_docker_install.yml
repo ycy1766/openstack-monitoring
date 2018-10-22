@@ -1,0 +1,7 @@
+---
+- name: docker_installation
+  hosts: monitoring_master
+  become: true
+
+  roles:
+    - docker

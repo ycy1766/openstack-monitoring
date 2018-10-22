@@ -1,0 +1,28 @@
+# config file version
+apiVersion: 1
+
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+- name: ElasticSearch
+  type: ElasticSearch
+  access: proxy
+  orgId: 1
+  url: http://localhost:9200
+  typeLogoUrl: "public/app/plugins/datasource/elasticsearch/img/elasticsearch.svg"
+  password:
+  user:
+  database: "logstash-*"
+  basicAuth: false
+  basicAuthUser: false
+  basicAuthPassword:
+  withCredentials:
+  isDefault: false
+  jsonData:
+     esVersion: 56
+     timeField: "@timestamp"
+     interval: 
+     maxConcurrentShardRequests: 256
+  version: 1
+  editable: false

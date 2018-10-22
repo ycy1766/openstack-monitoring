@@ -1,0 +1,70 @@
+## System Monitoring ##
+UserParameter=bonding.up_cnt, egrep ': up' /proc/net/bonding/bond* | wc -l
+UserParameter=bonding.down_cnt, egrep ': down' /proc/net/bonding/bond* | wc -l
+UserParameter=ps.defunct, ps aux | grep defunct | grep -v grep | wc -l
+UserParameter=system.cpucount,grep processor /proc/cpuinfo | wc -l
+
+
+
+## Cehp API ##
+UserParameter=ceph.rest_api.perf[*],sh /etc/zabbix/script/get-ceph-api.sh perf $1
+UserParameter=ceph.rest_api.stat[*], sh /etc/zabbix/script/get-ceph-api.sh stat $1
+UserParameter=ceph.rest_api[*],sh /etc/zabbix/script/get-ceph-api.sh $1 $2
+UserParameter=ceph.rest_api.pool[*],sh /etc/zabbix/script/get-ceph-api.sh get_pool
+UserParameter=ceph.rest_api.pool_bytes_used[*],sh /etc/zabbix/script/get-ceph-api.sh df pool_bytes_used $1
+UserParameter=ceph.rest_api.pool_max_avail[*],sh /etc/zabbix/script/get-ceph-api.sh df pool_max_avail $1
+UserParameter=ceph.rest_api.pool_objects[*],sh /etc/zabbix/script/get-ceph-api.sh df pool_objects $1 
+UserParameter=ceph.rest_api.total_used_bytes,sh /etc/zabbix/script/get-ceph-api.sh df total_used_bytes
+UserParameter=ceph.rest_api.total_bytes,sh /etc/zabbix/script/get-ceph-api.sh df total_bytes
+UserParameter=ceph.rest_api.total_avail_bytes,sh /etc/zabbix/script/get-ceph-api.sh df total_avail_bytes
+UserParameter=ceph.rest_api.pg_stat.name,sh /etc/zabbix/script/get-ceph-api.sh  pg state_name
+
+## Ceph API(OSD) ##
+UserParameter=ceph.rest_api.osd[*],sh /etc/zabbix/script/get-ceph-api.sh $1 $2 $3
+
+## Docker Monitoring ##
+UserParameter=docker.rest_api.container,sh /etc/zabbix/script/get-docker-api.sh get_container
+UserParameter=docker.rest_api.container_state[*],sh /etc/zabbix/script/get-docker-api.sh stat $1 status
+UserParameter=docker.rest_api.container_run_cnt, sh /etc/zabbix/script/get-docker-api.sh run_cnt
+UserParameter=docker.rest_api.container_all_cnt,sh /etc/zabbix/script/get-docker-api.sh all_cnt
+UserParameter=docker.rest_api.container_fail, sh /etc/zabbix/script/get-docker-api.sh fail
+
+## Openstack ##
+
+UserParameter=openstack.rest_api.hypervisors_list, sh /etc/zabbix/script/get-openstack-hypervisors.sh list
+UserParameter=openstack.rest_api.hypervisors_state[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh state $1
+UserParameter=openstack.rest_api.hypervisors_up_cnt, sh /etc/zabbix/script/get-openstack-hypervisors.sh up_cnt
+UserParameter=openstack.rest_api.hypervisors_total_cnt, sh /etc/zabbix/script/get-openstack-hypervisors.sh total_cnt
+
+UserParameter=openstack.rest_api.hypervisors_vcpu_used[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh vcpu_used $1
+UserParameter=openstack.rest_api.hypervisors_memory_mb[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh memory_mb $1
+UserParameter=openstack.rest_api.hypervisors_memory_mb_used[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh memory_mb_used $1
+UserParameter=openstack.rest_api.hypervisors_running_vms[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh running_vms $1
+UserParameter=openstack.rest_api.hypervisors_fail_list[*], sh /etc/zabbix/script/get-openstack-hypervisors.sh fail_list 
+
+UserParameter=openstack.rest_api.services_list, sh /etc/zabbix/script/get-openstack-services.sh list
+UserParameter=openstack.rest_api.services_state[*], sh /etc/zabbix/script/get-openstack-services.sh state {{ ansible_hostname }} $1
+UserParameter=openstack.rest_api.services_up_cnt[*], sh /etc/zabbix/script/get-openstack-services.sh up_cnt {{ ansible_hostname }}
+UserParameter=openstack.rest_api.services_total_cnt[*], sh /etc/zabbix/script/get-openstack-services.sh total_cnt {{ ansible_hostname }}
+UserParameter=openstack.rest_api.services_fail_list[*], sh /etc/zabbix/script/get-openstack-services.sh fail_list {{ ansible_hostname }}
+
+UserParameter=openstack.rest_api.network[*],sh /etc/zabbix/script/get-openstack-network.sh $1 $2
+
+UserParameter=openstack.rest_api.volume[*],sh /etc/zabbix/script/get-openstack-volume.sh $1 $2
+
+UserParameter=openstack.rest_api.compute[*],sh /etc/zabbix/script/get-openstack-compute.sh $1
+
+## Rabbit MQ ##
+UserParameter=rabbitmq.rest_api.send_oct_details_rate, sh /etc/zabbix/script/get-rabbitmq-api.sh send_oct_details_rate
+UserParameter=rabbitmq.rest_api.recv_oct_details_rate, sh /etc/zabbix/script/get-rabbitmq-api.sh recv_oct_details_rate
+UserParameter=rabbitmq.rest_api.messages_details_rate, sh /etc/zabbix/script/get-rabbitmq-api.sh messages_details_rate
+UserParameter=rabbitmq.rest_api.messages_ready_details_rate, sh /etc/zabbix/script/get-rabbitmq-api.sh messages_ready_details_rate
+UserParameter=rabbitmq.rest_api.messages_unacknowledged_details_rate, sh /etc/zabbix/script/get-rabbitmq-api.sh messages_unacknowledged_details_rate
+
+## Haproxy ##
+UserParameter=haproxy.rest_api[*], sh /etc/zabbix/script/get-haproxy-api.sh $1
+
+## MariaDB ##
+UserParameter=mysql.rest_api[*], sh /etc/zabbix/script/get-mysql.sh $1
+
+

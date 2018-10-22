@@ -1,0 +1,94 @@
+- name: create working directory
+  file:
+    path: "{{ ZABBIX_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: delete docker-compose file
+  file:
+    state: absent
+    path: "{{ ZABBIX_DIRECTORY }}/docker-compose.yml"
+
+- name: create docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ ZABBIX_DIRECTORY }}/docker-compose.yml"
+
+
+- name: create data directory
+  file:
+    path: "{{ ZABBIX_DATA_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create data directory
+  file:
+    path: "{{ ZABBIX_DATA_DIRECTORY }}/mysql"
+    state: directory
+    mode: 0777
+    owner: root
+    group: root
+
+- name: create conf directory
+  file:
+    path: "{{ ZABBIX_DIRECTORY }}/zabbix_web"
+    state: directory
+    mode: 0777
+
+- name: create conf directory
+  file:
+    path: "{{ ZABBIX_DIRECTORY }}/zabbix_web/conf"
+    state: directory
+    mode: 0777
+
+- name: create zabbix-conf file
+  template:
+    src: zabbix.conf.php.j2
+    dest: "{{ ZABBIX_DIRECTORY }}/zabbix_web/conf/zabbix.conf.php"
+
+- name: create zabbix web font directory
+  file:
+    path: "{{ ZABBIX_DIRECTORY }}/zabbix_web/font"
+    state: directory
+    mode: 0777
+
+- name: create zabbix web font dejavu directory
+  file:
+    path: "{{ ZABBIX_DIRECTORY }}/zabbix_web/font/dejavu/"
+    state: directory
+    mode: 0777
+
+- name: Download Zabbix web fonts
+  get_url:
+    url: "{{ ZABBIX_WEB_FONT_URL }}"
+    dest: "{{ ZABBIX_DIRECTORY }}/zabbix_web/font/dejavu/"
+
+- name: copy zabbix-server image file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/docker_images/{{ item }}.tar"
+    dest: "{{ DOCKER_IMAGE_DIRECTORY }}/{{ item }}.tar"
+  with_items:
+    - zabbix-mariadb
+    - zabbix-server
+    - zabbix-web
+
+- name: load zabbix-server image
+  docker_image:
+    name: monitoring_images
+    load_path: "{{ DOCKER_IMAGE_DIRECTORY }}/{{ item }}.tar"
+  with_items:
+    - zabbix-mariadb
+    - zabbix-server
+    - zabbix-web
+
+- name: execute docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose up -d"
+  args:
+    chdir: "{{ ZABBIX_DIRECTORY }}"
+
+- name: restart docker-compose
+  shell: "{{ PIP_VIRTUALENV_DIRECTORY }}/bin/docker-compose restart"
+  args:
+    chdir: "{{ ELASTICSEARCH_DIRECTORY }}"
+
+

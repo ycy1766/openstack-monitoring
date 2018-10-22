@@ -1,0 +1,53 @@
+
+- name: install zabbix_agent 
+  shell: yum install -y zabbix-agent.x86_64
+
+- name: copy UserParameter.conf file
+  template:
+    src: UserParameter.conf.j2
+    dest: "/etc/zabbix/zabbix_agentd.d/UserParameter.conf"
+
+- name: copy UserParameter.conf file
+  template:
+    src: zabbix_agentd.conf.j2
+    dest: "/etc/zabbix/zabbix_agentd.conf"
+
+- name: copy zabbix_agent util
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/utils/{{ item }}"
+    dest: "/etc/zabbix/{{ item }}"
+    mode: 0777
+  with_items:
+    - csv2json.py
+    - mysqlsh
+    - jq
+
+- name: create zabbix agent script directory
+  file:
+    path: "/etc/zabbix/script"
+    state: directory
+    mode: 0777
+
+- name: update zabbix agent  UserParameter script file
+  template: src={{ item }} dest=/etc/zabbix/script/{{ item | basename | regex_replace('\.j2','') }}
+  with_fileglob:
+    - ../templates/script/*.j2
+
+- name: Grant zabbix user passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^zabbix'
+    line: 'zabbix ALL=(ALL) NOPASSWD: ALL'
+  become: True
+
+- name: chmod docker socket
+  file:
+    path: /var/run/docker.sock
+    mode: 666
+
+- name: enable/restart for zabbix_agent
+  systemd:
+    name: zabbix-agent.service
+    state: restarted
+    enabled: True

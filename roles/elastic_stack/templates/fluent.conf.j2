@@ -1,0 +1,89 @@
+<source>
+  @type forward
+  bind 0.0.0.0
+  port 24224
+</source> 
+
+<filter  syslog.messages  >
+  @type parser
+  key_name log
+  reserve_data true
+  reserve_time true
+    <parse>
+      @type grok
+        <grok>
+          pattern %{SYSLOGTIMESTAMP:syslog_timestamp} %{DATA:syslog_hostname} %{SYSLOGPROG}:%{GREEDYDATA:syslog_message}
+        </grok>
+    </parse>
+</filter>
+
+<filter  syslog.commands  >
+  @type parser
+  key_name log
+  reserve_data true
+  reserve_time true
+    <parse>
+      @type grok
+        <grok>
+          pattern %{SYSLOGTIMESTAMP:syslog_timestamp}%{SPACE}%{GREEDYDATA:hostname}%{SPACE}%{WORD:syslog_user}:%{SPACE}IP=%{IP:client}%{SPACE}USER=%{WORD:user},%{SPACE}PID=%{WORD:pid},%{SPACE}PWD=%{GREEDYDATA:pwd},%{SPACE}CMD=%{GREEDYDATA:cmd}
+        </grok>
+    </parse>
+</filter>
+
+
+<filter openstack.lbass_access >
+  @type parser
+  key_name log
+  reserve_data true
+  reserve_time true
+    <parse>
+      @type grok
+        <grok>
+         pattern %{SYSLOGTIMESTAMP:logdate}%{SPACE}%{IP:vip}%{SPACE}haproxy\[%{NUMBER:pid}\]:%{SPACE}%{IP:client_ip}:%{NUMBER:client_port}%{SPACE}\[%{GREEDYDATA}\]%{SPACE}%{NOTSPACE:frontend_name}%{SPACE}%{NOTSPACE:backend_name}/%{SPACE}%{NOTSPACE:server_name}%{SPACE}%{NUMBER:TR}/%{NUMBER:Tw}/%{NUMBER:Tc}/%{NUMBER:Tr}/%{NUMBER:Ta}%{SPACE}%{NUMBER:status_code}%{SPACE}%{NUMBER:bytes_read}%{SPACE}%{NOTSPACE:captured_request_cookie}%{SPACE}%{NOTSPACE:captured_response_cookie}%{SPACE}%{NOTSPACE:termination_state}%{SPACE}%{NUMBER:actconn}/%{SPACE}%{NUMBER:feconn}/%{SPACE}%{NUMBER:beconn}/%{SPACE}%{NUMBER:srv_conn}/%{SPACE}%{NUMBER:retries}%{SPACE}%{NUMBER:srv_queue}/%{SPACE}%{NUMBER:backend_queue}%{SPACE}\"%{NOTSPACE:http_method}%{SPACE}%{NOTSPACE:http_request}%{SPACE}%{NOTSPACE:http_version}\"
+#%{SPACE}haproxy\[%{NUMBER:pid}\]:%{SPACE}%{IP:client_ip}:%{NUMBER:client_port}%{SPACE}\[%{GREEDYDATA}\]%{SPACE}%{NOTSPACE: frontend_name}%{SPACE}%{NOTSPACE:backend_name}/%{SPACE}%{NOTSPACE:server_name}%{SPACE}%{NUMBER:TR}/%{NUMBER:Tw}/%{NUMBER:Tc}/%{NUMBER:Tr}/%{NUMBER:Ta}%{SPACE}%{NUMBER:status_code}%{SPACE}%{NUMBER:bytes_read}%{SPACE}%{NOTSPACE:captured_request_cookie}%{SPACE}%{NOTSPACE:captured_response_cookie}%{SPACE}%{NOTSPACE:termination_state}%{SPACE}%{NUMBER:actconn}/%{SPACE}%{NUMBER:feconn}/%{SPACE}%{NUMBER:beconn}/%{SPACE}%{NUMBER:srv_conn}/%{SPACE}%{NUMBER:retries}%{SPACE}%{NUMBER:srv_queue}/%{SPACE}%{NUMBER:backend_queue}%{SPACE}\"%{NOTSPACE:http_method}%{SPACE}%{NOTSPACE:http_request}%{SPACE}%{NOTSPACE:http_version}\"
+        </grok>
+    </parse>
+</filter>
+
+
+<filter openstack.*  >
+  @type parser
+  key_name log
+  reserve_data true
+  reserve_time true
+    <parse>
+      @type grok
+        <grok>
+          pattern (?m)^%{TIMESTAMP_ISO8601:logdate}%{SPACE}%{NUMBER:pid}?%{SPACE}?(?<loglevel>AUDIT|CRITICAL|DEBUG|INFO|TRACE|WARNING|ERROR) \[?\b%{NOTSPACE:module}\b\]?%{SPACE}(\[(?:(req-%{UUID:request_id_list}|%{UUID:request_id_list}|%{BASE16NUM}|None|-|%{SPACE}))+\])?%{SPACE}%{GREEDYDATA:openstack_message}
+        </grok>
+    </parse>
+</filter>
+
+<filter ceph.mon >
+  @type parser
+  key_name log
+  reserve_data true
+  reserve_time true
+     <parse>
+      @type grok
+        <grok>
+	pattern %{TIMESTAMP_ISO8601:timestamp}%{SPACE}%{WORD:mon_number}%{SPACE}%{WORD:mon_number}%{SPACE}mon.%{DATA:mon_name}@%{INT:mon_rank}\(%{DATA:mon_state}\)%{GREEDYDATA:message}
+        </grok>
+	<grok> 
+	pattern %{TIMESTAMP_ISO8601:timestamp}%{SPACE}%{WORD:mon_number}%{SPACE}%{WORD:mon_number}%{SPACE}log_channel\(%{WORD:ceph_log_type}\)%{SPACE}log%{SPACE}\[%{WORD:log_level}\]%{SPACE}:%{GREEDYDATA:message}
+	</grok>
+    </parse>
+</filter>
+
+
+
+<match **>
+  @type elasticsearch
+  host localhost
+  port 9200
+  logstash_format true
+  logstash_prefix td_agent
+  #logstash_prefix test
+  include_tag_key true
+
+</match>

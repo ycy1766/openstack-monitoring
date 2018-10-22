@@ -1,0 +1,42 @@
+version: '2'
+services:
+  elasticsearch:
+    image: "docker.elastic.co/elasticsearch/elasticsearch-oss:{{ ELK_VERSION }}"
+    hostname: elasticsearch
+    container_name: elasticsearch
+    volumes:
+      - {{ ELASTICSEARCH_DIRECTORY }}/elasticsearch/log:/var/log/elasticsearch:Z
+      - /home/data/es:/usr/share/elasticsearch/data:Z
+    environment:
+      - cluster.name={{ ELASTICSEARCH_CLUSTER_NAME }}
+      - http.host=0.0.0.0
+      - network.host=0.0.0.0
+      - transport.host=localhost
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms{{ ELASTICSEARCH_MIN_MEM * 1024 }}m -Xmx{{ ELASTICSEARCH_MAX_MEM * 1024 }}m"
+      - TZ={{ TIMEZONE }}
+    network_mode: host
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: "docker.elastic.co/kibana/kibana-oss:{{ ELK_VERSION }}"
+    hostname: "kibana"
+    container_name: "kibana"
+    volumes:
+      - {{ ELASTICSEARCH_DIRECTORY }}/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:Z
+    network_mode: host
+    depends_on:
+      - elasticsearch
+
+  fluentd:
+    image: "fluentd-osc:latest" 
+    hostname: "fluentd-osc"
+    container_name: "fluentd-osc"
+    volumes:
+      - {{ ELASTICSEARCH_DIRECTORY }}/fluentd/fluent.conf:/fluentd/etc/fluent.conf:Z 
+    network_mode: host
+    #depends_on:
+    #  - elasticsearch

@@ -1,0 +1,36 @@
+#!/bin/sh
+
+JQ="{{ JQ }}"
+GET_URL="http://{{ ansible_hostname }}:15672/api/vhosts"
+GET_URL_API="{{ CURL }} -u {{RABBIT_MQ_USER }}:{{ RABBIT_MQ_PASSWORD }} $GET_URL "
+
+if [ $# = 0 ]
+then
+  echo "no insert Argument"
+
+elif [ $1 = send_oct_details_rate ]
+then
+	$GET_URL_API | $JQ '.[].send_oct_details.rate'
+
+elif [ $1 = recv_oct_details_rate ]
+then
+	$GET_URL_API | $JQ '.[].recv_oct_details.rate'
+
+elif [ $1 = messages_details_rate ]
+then
+	$GET_URL_API | $JQ '.[].messages_details.rate'
+
+elif [ $1 = messages_ready_details_rate  ]
+then
+	$GET_URL_API | $JQ '.[].messages_ready_details.rate'
+
+elif [ $1 = messages_unacknowledged_details_rate ]
+then
+	$GET_URL_API | $JQ '.[].messages_unacknowledged_details.rate'
+
+
+fi
+
+
+
+

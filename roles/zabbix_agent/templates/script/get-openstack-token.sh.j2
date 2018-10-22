@@ -1,0 +1,15 @@
+
+
+
+export OS_USER_DOMAIN_NAME={{ OS_USER_DOMAIN_NAME }}
+export OS_AUTH_URL="http://{{ ansible_hostname }}:35357/v3"
+export OS_USERNAME={{ OS_USERNAME }}
+export OS_PASSWORD={{ OS_PASSWORD }}
+export OS_PROJECT_DOMAIN_NAME={{ OS_PROJECT_DOMAIN_NAME }}
+export OS_PROJECT_NAME={{ OS_PROJECT_NAME }}
+
+{{ CURL }} -v -X POST $OS_AUTH_URL/auth/tokens?nocatalog   \
+-H "Content-Type: application/json"   \
+-d '{ "auth": { "identity": { "methods": ["password"],"password": {"user": {"domain": {"name": "'"$OS_USER_DOMAIN_NAME"'"},"name": "'"$OS_USERNAME"'", "password": "'"$OS_PASSWORD"'"} } }, "scope": { "project": { "domain": { "name": "'"$OS_PROJECT_DOMAIN_NAME"'" }, "name":  "'"$OS_PROJECT_NAME"'" } } }}' \
+ 2>&1 | grep X-Subject-Token |  awk '{print $3}'
+

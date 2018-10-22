@@ -1,0 +1,176 @@
+[monitoring_master]
+khoj2-kolla-deploy ansible_host=192.168.40.10
+
+[ceph_docker_master]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[ceph_docker_master:vars]
+ansible_user=centos
+ansible_connection=ssh
+ansible_port=22
+
+[venv_master]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+khoj2-kolla-con1 ansible_host=192.168.40.111
+khoj2-kolla-con2 ansible_host=192.168.40.112
+khoj2-kolla-con3 ansible_host=192.168.40.113
+khoj2-kolla-com1 ansible_host=192.168.40.121
+khoj2-kolla-com2 ansible_host=192.168.40.122
+khoj2-kolla-com3 ansible_host=192.168.40.123
+cloud-deploy ansible_host=192.168.40.12
+
+[venv_master:vars]
+ansible_user=centos
+ansible_port=22
+ansible_connection=ssh
+
+[zabbix_master]
+khoj2-kolla-deploy ansible_host=192.168.40.10
+
+[zabbix_master:vars]
+ansible_user=root
+ansible_connection=ssh
+
+[elastic_master]
+khoj2-kolla-deploy ansible_host=192.168.40.10
+
+[elastic_master:vars]
+ansible_user=root
+ansible_connection=ssh
+
+[grafana_master]
+khoj2-kolla-deploy ansible_host=192.168.40.10
+
+[grafana_master:vars]
+ansible_user=root
+ansible_connection=ssh
+
+## Zabbix Agent host
+
+[zabbix_agent_ceph] ## ceph mgr+mon+osd
+#khoj2-kolla-ceph1 ansible_host=192.168.40.131
+
+[zabbix_agent_ceph_mgr] ## ceph mgr
+#khoj2-kolla-ceph1 ansible_host=192.168.40.131
+
+[zabbix_agent_ceph_mon] ## ceph mon
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+
+[zabbix_agent_ceph_osd] ## ceph ods
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[zabbix_agent_openstack_controller]
+khoj2-kolla-con1 ansible_host=192.168.40.111
+khoj2-kolla-con2 ansible_host=192.168.40.112
+khoj2-kolla-con3 ansible_host=192.168.40.113
+
+[zabbix_agent_openstack_compute]
+khoj2-kolla-com1 ansible_host=192.168.40.121
+khoj2-kolla-com2 ansible_host=192.168.40.122
+khoj2-kolla-com3 ansible_host=192.168.40.123
+
+[zabbix_agent_mon]
+khoj2-kolla-deploy ansible_host=192.168.40.10
+
+[zabbix_agent_deploy]
+cloud-deploy ansible_host=192.168.40.12
+
+[zabbix_agent_master:children]
+#zabbix_agent_mon
+#zabbix_agent_ceph
+#zabbix_agent_ceph_mgr
+#zabbix_agent_ceph_mon
+#zabbix_agent_ceph_osd
+#zabbix_agent_deploy
+zabbix_agent_openstack_controller
+#zabbix_agent_openstack_compute
+
+[zabbix_agent_master:vars]
+ansible_user=centos
+ansible_connection=ssh
+ansible_port=22
+
+
+## fluent_bit Agent Host
+
+[fluent_bit_mon]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[fluent_bit_osd]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[fluent_bit_controller]
+khoj2-kolla-con1 ansible_host=192.168.40.111
+khoj2-kolla-con2 ansible_host=192.168.40.112
+khoj2-kolla-con3 ansible_host=192.168.40.113
+
+[fluent_bit_compute]
+khoj2-kolla-com1 ansible_host=192.168.40.121
+khoj2-kolla-com2 ansible_host=192.168.40.122
+khoj2-kolla-com3 ansible_host=192.168.40.123
+
+
+[fluent_bit_master:children]
+fluent_bit_mon
+fluent_bit_osd
+fluent_bit_controller
+fluent_bit_compute
+
+
+
+[filebeat_master:vars]
+ansible_user=centos
+ansible_port=22
+ansible_connection=ssh
+
+
+## filebeat Agent host
+[filebeat_ceph_mon]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[filebeat_ceph_osd]
+khoj2-kolla-ceph1 ansible_host=192.168.40.131
+khoj2-kolla-ceph2 ansible_host=192.168.40.132
+khoj2-kolla-ceph3 ansible_host=192.168.40.133
+
+[filebeat_openstack_controller]
+khoj2-kolla-con1 ansible_host=192.168.40.111
+khoj2-kolla-con2 ansible_host=192.168.40.112
+khoj2-kolla-con3 ansible_host=192.168.40.113
+
+[filebeat_openstack_compute]
+khoj2-kolla-com1 ansible_host=192.168.40.121
+khoj2-kolla-com2 ansible_host=192.168.40.122
+khoj2-kolla-com3 ansible_host=192.168.40.123
+
+[filebeat_master:children]
+filebeat_ceph_mon
+filebeat_ceph_osd
+filebeat_openstack_controller
+filebeat_openstack_compute
+
+[filebeat_master:vars]
+ansible_user=centos
+ansible_port=22
+ansible_connection=ssh
+
+[grafana_dashboard:children]
+zabbix_agent_master
+

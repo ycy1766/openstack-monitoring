@@ -1,0 +1,36 @@
+---
+- name: docker_installation
+  hosts: venv_master
+  become: true
+
+  tasks:
+  - name: install python-pip
+    yum:
+      name: python-pip
+      state: present
+
+  - name: download virtualenv
+    get_url:
+      url: "{{ MONITORING_WEB_REPO }}/virtualenv/virtualenv-15.2.0.tar.gz"
+      dest: "{{ PIP_DIRECTORY }}"
+
+  - name: install virtualenv
+    shell: "sudo pip install {{ PIP_DIRECTORY }}/virtualenv-15.2.0.tar.gz"
+  
+  - name: delete virtualenv file
+    file:
+      state: absent
+      path: "{{ PIP_DIRECTORY }}/virtualenv-15.2.0.tar.gz"
+
+  - name: copy virtualenv-clinet file
+    unarchive:
+      src: "{{ MONITORING_WEB_REPO }}/virtualenv/virtualenv_client.tar"
+      dest: "{{ PIP_DIRECTORY }}"
+      remote_src: yes
+      list_files: "yes"
+
+
+
+
+
+

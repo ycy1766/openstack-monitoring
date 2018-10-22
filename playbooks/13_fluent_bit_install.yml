@@ -1,0 +1,7 @@
+---
+- name: fluent_bit installation
+  hosts: fluent_bit_master
+  become: true
+
+  roles:
+    - fluent_bit

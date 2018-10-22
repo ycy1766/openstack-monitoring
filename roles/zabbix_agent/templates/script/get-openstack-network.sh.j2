@@ -1,0 +1,55 @@
+OS_TOKEN=` sh /etc/zabbix/script/get-openstack-token.sh`
+
+if [ $# = 0 ]  
+then  
+  echo "no insert Argument"
+elif [ $1 = list ]  
+then  
+TEMP_FILE="/tmp/.op_net.txt"
+CONCNT=`{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:9696/v2.0/networks  | {{ JQ }}  '.networks[].name'  >$TEMP_FILE && cat $TEMP_FILE | wc -l`
+#CONCNT=`{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://osc-controller01:9696/v2.0/networks  | {{ JQ }} '.networks[] | "\(.id) \(.name)"'  >$TEMP_FILE && cat $TEMP_FILE | wc -l`
+
+#DISC_VAR="NETWORK"
+DISC_VAR_ID="NETWORK_ID"
+DISC_VAR_NAME="NETWORK_NAME"
+
+for (( i=1; i<=$CONCNT; i++ ))
+        do
+                CONNAME=${i}p
+                if [ $i -eq 1 ];then
+                        echo "{ \"data\":["
+                        #sed -n ${CONNAME} $TEMP_FILE | awk '{print "{ \"{{ '{#' }}'$DISC_VAR'}\":"$1" "$2" "$3" "$4" "$5 "}"}'
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print "{ \"{{ '{#' }}'$DISC_VAR_ID'}\":"$1"\",\"{{ '{#' }}'$DISC_VAR_NAME'}\":\""$2" "$3" "$4" "$5"}" }'
+                else
+                        sed -n ${CONNAME} $TEMP_FILE | awk '{print ",{\"{{ '{#' }}'$DISC_VAR_ID'}\":"$1"\",\"{{ '{#' }}'$DISC_VAR_NAME'}\":\""$2" "$3" "$4" "$5"}" }'
+                fi
+
+                if [ $i -eq $CONCNT ];then
+                        echo "]}"
+                fi
+        done
+rm -rf $TEMP_FILE
+
+
+elif [ $1 = state ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:9696/v2.0/networks \
+| {{ JQ }}  -r --arg  NETWORK_ID $2  '.networks[] | select(.id==$NETWORK_ID) | .admin_state_up '
+
+elif [ $1 = fail_list ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:9696/v2.0/networks \
+| {{ JQ }} '.networks[] | select(.admin_state_up!=true)|.name  '
+
+elif [ $1 = up_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:9696/v2.0/networks \
+| {{ JQ }} '.networks[] | select(.admin_state_up==true) | .name' | wc -l
+
+elif [ $1 = total_cnt ]
+then
+{{ CURL }} -H "X-Auth-Token: $OS_TOKEN" http://{{ ansible_hostname }}:9696/v2.0/networks \
+| {{ JQ }}  '.networks[].name' | wc -l
+
+
+fi

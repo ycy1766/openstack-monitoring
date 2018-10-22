@@ -1,0 +1,7 @@
+---
+- name: Zabbix Agent installation
+  hosts: zabbix_agent_master
+  become: true
+
+  roles:
+    - zabbix_agent

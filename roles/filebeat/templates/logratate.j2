@@ -1,0 +1,9 @@
+/var/log/bash_history/*.log {
+  weekly
+  rotate 4
+  missingok
+  dateext
+  postrotate
+    touch /var/log/bash_history/bash_command.log
+  endscript
+}

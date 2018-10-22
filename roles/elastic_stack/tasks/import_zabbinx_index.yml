@@ -1,0 +1,26 @@
+---
+- name: wait for elasticsearch port binding
+  wait_for:
+    host: "{{ ELASTICSEARCH_HOSTNAME }}"
+    port: 9200
+    delay: 10
+
+- name: import zabbix index 
+  body_format: json
+  ignore_errors: True
+  uri:
+    url: http://{{ ELASTICSEARCH_URL }}/{{ item }}
+    method: PUT
+    body: "{{ lookup('file','include/{{ item }}.json') }}"
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+  delay: 3
+  with_items:
+     - str
+     - dbl
+     - text
+     - uint
+     - log
+  
+

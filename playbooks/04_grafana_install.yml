@@ -1,0 +1,7 @@
+---
+- name: Grafana installation
+  hosts: grafana_master
+  become: true
+
+  roles:
+    - grafana

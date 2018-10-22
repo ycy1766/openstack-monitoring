@@ -1,0 +1,20 @@
+---
+- name: Filebeat delete
+  hosts: filebeat_master
+  become: true
+
+  tasks:
+  - name: stop a container
+    docker_container:
+      name: filebeat
+      state: stopped
+
+  - name: stop a container
+    docker_container:
+      name: filebeat
+      state: absent
+
+  - name: clean artifact path
+    file:
+      state: absent
+      path: "{{ FILEBEAT_DIRECTORY }}"

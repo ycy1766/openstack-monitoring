@@ -1,0 +1,9 @@
+- name: copy zabbix.repo file
+  template:
+    src: zabbix.repo.j2
+    dest: /etc/yum.repos.d/zabbix.repo
+  when: '"zabbix_agent_mon" not in group_names'
+
+- name: yum clean all
+  shell: yum clean all 
+  ignore_errors: yes

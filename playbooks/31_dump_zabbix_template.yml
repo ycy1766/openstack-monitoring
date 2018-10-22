@@ -1,0 +1,28 @@
+---
+- name: dump zabbix_server templates 
+  hosts: zabbix_master
+  become: true
+
+  tasks:
+  - name: dump Zabbix template
+    local_action:
+      module: zabbix_template
+      server_url: http://{{ ZABBIX_SERVER_HOST }}
+      login_user: Admin
+      login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+      template_name: "{{ item }}"
+      state: dump
+    register: template_dump
+    with_items:
+#      - "Custom Template Ceph Mon"
+      - "Custom Template Openstack Controller"
+
+  - debug: var=template_dump.stdout
+  - name: dump variable to file
+    copy:
+      content: "{{ template_dump }}"
+      dest: "/tmp/test.txt" 
+ 
+# - local_action: 
+ # copy content={{ template_dump }} dest=/tmp/test.json
+ #     var: template_dump

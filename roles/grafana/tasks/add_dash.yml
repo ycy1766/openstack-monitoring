@@ -1,0 +1,19 @@
+- name: Create dashboard
+  uri:
+    url: http://{{ GRAFANA_SERVER_HOST }}:{{ GRAFANA_SERVER_PORT }}/api/dashboards/db
+    method: POST
+    user: "admin"
+    password: "{{ GRAFANA_ADMIN_PASS }}"
+    status_code: 200
+    body_format: json
+    force_basic_auth: yes
+    body:
+      dashboard: "{{ lookup('file','../templates/' + item + '.json.j2' ) }}"
+      overwrite: true
+  with_items:
+  - ceph_cluster_template
+  - linux_server_template
+  - openstack_compute_template
+  - openstack_controller_template
+  changed_when: false
+

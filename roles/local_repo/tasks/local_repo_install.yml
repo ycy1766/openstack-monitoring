@@ -1,0 +1,88 @@
+---
+- name: check monitoring web repo directory
+  stat: 
+    path: "{{ MONITORING_WEB_DIRECTORY }}"
+  register: check_directory_result
+
+- name: create monitoring web repo directory
+  file: 
+    path: "{{ MONITORING_WEB_DIRECTORY }}" 
+    state: directory
+  when: check_directory_result.stat.exists == False
+
+- name: create monitoring web repo directory(html)
+  file: 
+    path: "{{ MONITORING_WEB_DIRECTORY }}/html" 
+    state: directory
+
+- name: create monitoring web repo directory(docker_images,utils,virtualenv)
+  file: 
+    path: "{{ MONITORING_WEB_DIRECTORY }}/html/{{ item }}" 
+    state: directory
+  with_items:
+    - docker_images
+    - utils
+    - virtualenv
+
+- name: copy docker_images from monitoring repo
+  get_url:
+    url: "{{ MONITORING_REPO }}/mon_repo/docker_images/{{ item }}.tar"
+    dest: "{{ MONITORING_WEB_DIRECTORY }}/html/docker_images/{{ item }}.tar"
+  with_items:
+    - elasticsearch 
+    - filebeat
+    - grafana
+    - kibana
+    - logstash
+    - zabbix-agent
+    - zabbix-mariadb
+    - zabbix-server
+    - zabbix-web
+    - fluent-bit
+    - fluentd-osc
+
+- name: copy utils from monitoring repo
+  get_url:
+    url: "{{ MONITORING_REPO }}/mon_repo/utils/{{ item }}"
+    dest: "{{ MONITORING_WEB_DIRECTORY }}/html/utils/{{ item }}"
+    mode: 0777
+  with_items:
+    - csv2json.py
+    - jq
+    - mysqlsh
+
+- name: copy virtualenv from monitoring repo
+  get_url:
+    url: "{{ MONITORING_REPO }}/mon_repo/virtualenv/{{ item }}"
+    dest: "{{ MONITORING_WEB_DIRECTORY }}/html/virtualenv/{{ item }}"
+    mode: 0644
+  with_items:
+    - zabbix_agent_venv.tar
+    - virtualenv_client.tar
+    - virtualenv-15.2.0.tar.gz
+
+- name: create nginx repo container
+  docker_container:
+    name: nginx
+    image: "nginx:latest"
+    restart: yes
+    ports: "{{ MONITORING_WEB_REPO_PORT }}:80"
+    restart_policy: unless-stopped
+    volumes:
+    - "{{ MONITORING_WEB_DIRECTORY }}/html/:/usr/share/nginx/html:Z"
+
+- name: copy zabbix.repo file
+  template:
+    src: zabbix.repo.j2
+    dest: /etc/yum.repos.d/
+
+- name: yum clean all
+  shell: yum clean all && yum install -y createrepo
+  ignore_errors: yes
+
+- name: sync updates zabbix repo 
+  shell: reposync -l --repoid=zabbix --download_path={{ MONITORING_WEB_DIRECTORY }}/html
+
+- name: create repo of zabbix
+  shell: createrepo {{ MONITORING_WEB_DIRECTORY }}/html/zabbix
+

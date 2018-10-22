@@ -1,0 +1,7 @@
+---
+- name: Elasticsearch installation
+  hosts: elastic_master
+  become: true
+
+  roles:
+    - elastic_stack

@@ -1,0 +1,102 @@
+
+- name: create zabbix agent working directory
+  file:
+    path: "{{ ZABBIX_AGENT_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: create zabbix agent config directory
+  file:
+    path: "{{ ZABBIX_AGENT_DIRECTORY }}/conf"
+    state: directory
+    mode: 0777
+
+- name: create zabbix agent script directory
+  file:
+    path: "{{ ZABBIX_AGENT_DIRECTORY }}/script"
+    state: directory
+    mode: 0777
+
+- name: copy openstack-agent-script file 
+  template: src={{ item }} dest={{ ZABBIX_AGENT_DIRECTORY }}/script/{{ item | basename | regex_replace('\.j2','') }}
+  with_fileglob:
+    - ../templates/script/*.j2
+
+- name: copy UserParameter.conf file
+  template:
+    src: UserParameter.conf.j2
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}/conf/UserParameter.conf"
+
+- name: copy jq file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/utils/jq"
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}/jq" 
+    mode: 0777
+
+- name: copy mysqlsh file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/utils/mysqlsh"
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}/mysqlsh" 
+    mode: 0777
+
+- name: copy zabbix agent virtual env
+  unarchive:
+    src: "{{ MONITORING_WEB_REPO }}/virtualenv/zabbix_agent_venv.tar"
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}"
+    remote_src: yes
+
+- name: copy csv2json.py file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/utils/csv2json.py"
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}/csv2json.py" 
+    mode: 0777
+
+- name: copy csv2json file
+  template:
+    src: csv2json.py.j2
+    dest: "{{ ZABBIX_AGENT_DIRECTORY }}/csv2json.py"
+    mode: 0777
+
+- name: chmod docker socket
+  file:
+    path: /var/run/docker.sock
+    mode: 666
+
+- name: create docker images directory
+  file:
+    path: "{{ DOCKER_IMAGE_DIRECTORY }}"
+    state: directory
+    mode: 0777
+
+- name: copy docker image file
+  get_url:
+    url: "{{ MONITORING_WEB_REPO }}/docker_images/zabbix-agent.tar"
+    dest: "{{ DOCKER_IMAGE_DIRECTORY }}/zabbix-agent.tar" 
+
+- name: Load image  
+  docker_image:
+    name: zabbix/zabbix-agent
+    load_path: "{{ DOCKER_IMAGE_DIRECTORY }}/zabbix-agent.tar"
+
+- name: Create zabbix_agent container
+  docker_container:
+    name: zabbix_agent
+    image: "zabbix/zabbix-agent:{{ ZABBIX_AGENT_TAG }}"
+    network_mode: host
+    restart: yes
+    #restart_policy: unless-stopped
+    privileged: no
+    env:
+        ZBX_HOSTNAME: "{{ inventory_hostname }}"
+        ZBX_SERVER_HOST: "{{ ZABBIX_SERVER_HOST }}"
+    volumes:
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/conf/:/etc/zabbix/zabbix_agentd.d:Z"
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/script/:/etc/zabbix/script:Z"
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/jq:{{ JQ }}:Z"
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/csv2json.py:/etc/zabbix/csv2json.py:Z"
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/mysqlsh:{{ MYSQLSH }}:Z"
+      - "{{ ZABBIX_AGENT_DIRECTORY }}/zabbix_agent_venv:/zabbix_agent_venv:Z"
+      - /:/rootfs
+      - /var/run:/var/run
+
+

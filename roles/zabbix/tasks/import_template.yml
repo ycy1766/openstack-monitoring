@@ -1,0 +1,89 @@
+
+- name: wait for zabbix_web port binding
+  wait_for:
+    host: "{{ ZABBIX_SERVER_HOST }}"
+    port: 80
+    delay: 10
+
+- name: wait for zabbix_server port binding
+  wait_for:
+    host: "{{ ZABBIX_SERVER_HOST }}"
+    port: 10051
+    delay: 10
+
+#- name: Dump Zabbix template
+#  local_action:
+#    module: zabbix_template
+#    server_url: http://{{ ZABBIX_SERVER_HOST }}
+#    login_user: Admin
+#    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+#    template_name: "Custom Template Ceph Mon"
+#    state: dump
+#  register: template_dump
+#- local_action: copy content={{ template_dump }} dest=/tmp/test.json
+
+
+- name: Import Zabbix json template (ceph mon)
+  local_action:
+    module: zabbix_template
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: Admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    template_name: Custom Template Ceph Mon
+    template_json: "{{ lookup('file', 'include/CustomTemplateCephMon.json') }}"
+    template_groups:
+      - Linux servers
+    state: present
+
+- name: Import Zabbix json template (ceph osd)
+  local_action:
+    module: zabbix_template
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: Admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    template_name: Custom Template Ceph Osd
+    template_json: "{{ lookup('file', 'include/CustomTemplateCephOsd.json') }}"
+    template_groups:
+      - Linux servers
+    state: present
+
+- name: import zabbix json template (Openstack Compute)
+  local_action:
+    module: zabbix_template
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    template_name: Custom Template Openstack Compute
+    template_json: "{{ lookup('file', 'include/CustomTemplateOpenstackCompute.json') }}"
+    template_groups:
+     - linux servers
+    state: present
+
+- name: import zabbix json template (Openstack Controller)
+  local_action:
+    module: zabbix_template
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    template_name: Custom Template Openstack Controller
+    template_json: "{{ lookup('file', 'include/CustomTemplateOpenstackController.json') }}"
+    template_groups:
+      - linux servers
+    state: present
+
+- name: import zabbix json template (Docekr)
+  local_action:
+    module: zabbix_template
+    server_url: http://{{ ZABBIX_SERVER_HOST }}
+    login_user: admin
+    login_password: "{{ ZABBIX_WEB_ADMIN_PASSWORD }}"
+    template_name: Custom Template Docker 
+    template_json: "{{ lookup('file', 'include/CustomTemplateDocker.json') }}"
+    template_groups:
+      - linux servers
+    state: present
+
+
+
+
+
